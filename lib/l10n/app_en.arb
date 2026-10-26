@@ -1,0 +1,102 @@
+{
+  "@@locale": "en",
+  "appTitle": "Math Puzzle",
+  "tagline": "Find the numbers. Connect the equations.",
+  "play": "Play",
+  "level": "Level {number}",
+  "@level": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "appearance": "Appearance",
+  "system": "System",
+  "light": "Light",
+  "dark": "Dark",
+  "instructions": "Tap a cell, then a number. Or drag a number onto the board. Return it to the pool or undo a move whenever you need.",
+  "undo": "Undo",
+  "returnTile": "Return",
+  "completed": "Puzzle complete!",
+  "wellDone": "Every equation is correct.",
+  "close": "Continue",
+  "selected": "Selected",
+  "empty": "Empty",
+  "fixed": "Fixed",
+  "correct": "Correct",
+  "incorrect": "Incorrect",
+  "incomplete": "Incomplete",
+  "equation": "Equation {number}",
+  "@equation": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "saved": "Progress is saved automatically.",
+  "saveError": "Could not save. Your progress is available for this session.",
+  "solved": "Completed",
+  "cell": "Cell {number}",
+  "@cell": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "resume": "Continue",
+  "tutorialTap": "Tap the empty cell after +, then tap 2 below.",
+  "paused": "Paused",
+  "viewLevels": "View levels",
+  "allComplete": "You have finished all three levels!",
+  "nextLevel": "Next level",
+  "turkish": "Turkish",
+  "sort": "Sort remaining numbers",
+  "chooseLevel": "Choose a level",
+  "language": "Language",
+  "skip": "Skip",
+  "recoveryNotice": "An unreadable save was preserved in a recovery copy. This level starts with an empty board.",
+  "editable": "Editable",
+  "largeNumbers": "Large numbers",
+  "home": "Home",
+  "showTimer": "Show timer",
+  "tutorialDrag": "Now drag 3 from the pool into the last empty cell.",
+  "completedCount": "{count} of {total} levels completed",
+  "poolTile": "Number {number} in the pool",
+  "divisionSymbol": "Division symbol",
+  "settings": "Settings",
+  "tutorialStep": "Step {number} of 2",
+  "howToPlay": "How to play",
+  "pause": "Pause",
+  "english": "English",
+  "elapsedTime": "Play time",
+  "@poolTile": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@tutorialStep": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@completedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "legacyTimeNotice": "The previous version did not record time. Only play time since this update is measured.",
+  "replay": "Play again",
+  "viewResult": "View result"
+}

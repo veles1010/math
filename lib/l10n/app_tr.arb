@@ -1,0 +1,102 @@
+{
+  "@@locale": "tr",
+  "appTitle": "Math Puzzle",
+  "tagline": "Sayıları bul. Denklemleri birleştir.",
+  "play": "Oyna",
+  "level": "Bölüm {number}",
+  "@level": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "appearance": "Görünüm",
+  "system": "Sistem",
+  "light": "Açık",
+  "dark": "Koyu",
+  "instructions": "Hücreye, sonra sayıya dokun. İstersen sayıyı tahtaya sürükle. Sayıyı havuza geri koyabilir veya hamleyi geri alabilirsin.",
+  "undo": "Geri al",
+  "returnTile": "Geri koy",
+  "completed": "Bulmaca tamamlandı!",
+  "wellDone": "Bütün denklemler doğru.",
+  "close": "Devam et",
+  "selected": "Seçili",
+  "empty": "Boş",
+  "fixed": "Sabit",
+  "correct": "Doğru",
+  "incorrect": "Yanlış",
+  "incomplete": "Eksik",
+  "equation": "Denklem {number}",
+  "@equation": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "saved": "İlerleme otomatik kaydedilir.",
+  "saveError": "Kaydedilemedi. İlerlemen bu oturumda kullanılabilir.",
+  "solved": "Tamamlandı",
+  "cell": "Hücre {number}",
+  "@cell": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "resume": "Devam et",
+  "tutorialTap": "+ işaretinden sonraki boş hücreye, sonra alttaki 2 sayısına dokun.",
+  "paused": "Duraklatıldı",
+  "viewLevels": "Bölümleri gör",
+  "allComplete": "Üç bölümün tamamını bitirdin!",
+  "nextLevel": "Sonraki bölüm",
+  "turkish": "Türkçe",
+  "sort": "Kalan sayıları sırala",
+  "chooseLevel": "Bölüm seç",
+  "language": "Dil",
+  "skip": "Atla",
+  "recoveryNotice": "Okunamayan kayıt bir kurtarma kopyasında korundu. Bu bölüm boş tahtayla başlar.",
+  "editable": "Düzenlenebilir",
+  "largeNumbers": "Büyük sayılar",
+  "home": "Ana sayfa",
+  "showTimer": "Zamanlayıcıyı göster",
+  "tutorialDrag": "Şimdi havuzdaki 3 sayısını son boş hücreye sürükle.",
+  "completedCount": "{total} bölümden {count} tanesi tamamlandı",
+  "poolTile": "Havuzdaki {number} sayısı",
+  "divisionSymbol": "Bölme işareti",
+  "settings": "Ayarlar",
+  "tutorialStep": "Adım {number} / 2",
+  "howToPlay": "Nasıl oynanır",
+  "pause": "Duraklat",
+  "english": "İngilizce",
+  "elapsedTime": "Oynama süresi",
+  "@poolTile": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@tutorialStep": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@completedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "legacyTimeNotice": "Önceki sürüm süre kaydetmiyordu. Yalnızca bu güncellemeden sonraki oynama süresi ölçülür.",
+  "replay": "Tekrar oyna",
+  "viewResult": "Sonucu gör"
+}
