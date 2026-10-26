@@ -98,5 +98,25 @@
   },
   "legacyTimeNotice": "Önceki sürüm süre kaydetmiyordu. Yalnızca bu güncellemeden sonraki oynama süresi ölçülür.",
   "replay": "Tekrar oyna",
-  "viewResult": "Sonucu gör"
+  "viewResult": "Sonucu gör",
+  "replayEasy": "Bu kolay bulmacayı tekrar oyna",
+  "startNew": "Yenisini başlat",
+  "newEasyPuzzle": "Yeni bulmaca — Kolay",
+  "keepPuzzle": "Mevcut bulmacayı koru",
+  "generationFailed": "Yeni bulmaca hazırlanamadı. Mevcut oyunun korundu. Lütfen tekrar dene.",
+  "easyPuzzle": "Kolay bulmaca",
+  "generating": "Bulmaca hazırlanıyor…",
+  "replacePuzzleTitle": "Yeni kolay bulmaca başlatılsın mı?",
+  "easyCompletedCount": "Tamamlanan kolay bulmaca: {count}",
+  "continueEasy": "Kolay bulmacaya devam et",
+  "fallbackNotice": "Üretim tamamlanamadığı için doğrulanmış yedek bir bulmaca kullanıldı.",
+  "replacePuzzleBody": "Yarım kolay bulmacanın yerine yenisi gelecek. Üç sabit bölüm korunur.",
+  "@easyCompletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceLevels": "Alıştırma bölümleri"
 }

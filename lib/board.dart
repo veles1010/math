@@ -14,6 +14,7 @@ class PuzzleBoard extends StatelessWidget {
   final void Function(String, String?)? onTransfer;
   final ValueChanged<bool>? onDragging;
   final bool Function(String, String?)? allow;
+  final double? fittingHeight;
   const PuzzleBoard({
     super.key,
     required this.game,
@@ -26,41 +27,58 @@ class PuzzleBoard extends StatelessWidget {
     this.onTransfer,
     this.onDragging,
     this.allow,
+    this.fittingHeight,
   });
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, c) {
-      final size = math.min(64.0, (c.maxWidth - 16) / 5);
-      final width = size * 5 + 16;
-      return Center(
-        child: SizedBox(
-          width: width,
-          height: size * game.puzzle.rows + 4 * (game.puzzle.rows - 1),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var row = 0; row < game.puzzle.rows; row++)
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: row == game.puzzle.rows - 1 ? 0 : 4,
-                  ),
-                  child: Row(
-                    children: [
-                      for (var col = 0; col < 5; col++)
-                        Padding(
-                          padding: EdgeInsets.only(right: col == 4 ? 0 : 4),
-                          child: SizedBox(
-                            width: size,
-                            height: size,
-                            child: _cell(context, row, col),
-                          ),
-                        ),
-                    ],
-                  ),
+      final columns = game.puzzle.columns;
+      final fit = (c.maxWidth - 4 * (columns - 1)) / columns;
+      final heightFit = fittingHeight == null
+          ? 64.0
+          : (fittingHeight! - 4 * (game.puzzle.rows - 1)) / game.puzzle.rows;
+      final size = interactive
+          ? math.max(48.0, math.min(64.0, math.min(fit, heightFit)))
+          : math.min(64.0, math.min(fit, heightFit));
+      final width = size * columns + 4 * (columns - 1);
+      final grid = SizedBox(
+        key: const ValueKey('board-grid'),
+        width: width,
+        height: size * game.puzzle.rows + 4 * (game.puzzle.rows - 1),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var row = 0; row < game.puzzle.rows; row++)
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: row == game.puzzle.rows - 1 ? 0 : 4,
                 ),
-            ],
-          ),
+                child: Row(
+                  children: [
+                    for (var col = 0; col < columns; col++)
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: col == columns - 1 ? 0 : 4,
+                        ),
+                        child: SizedBox(
+                          width: size,
+                          height: size,
+                          child: _cell(context, row, col),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
         ),
+      );
+      return Center(
+        child: width <= c.maxWidth + .01
+            ? grid
+            : SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: grid,
+              ),
       );
     },
   );
@@ -82,6 +100,7 @@ class PuzzleBoard extends StatelessWidget {
     final pulse = equations.any(celebrating.contains);
     if (id == null) {
       return Stone(
+        key: ValueKey('symbol-$row-$col'),
         label: symbol == '÷' && slash ? '/' : symbol!,
         semantics: symbol!,
         operatorCell: true,
@@ -98,7 +117,7 @@ class PuzzleBoard extends StatelessWidget {
       key: ValueKey('cell-$id'),
       label: value?.toString() ?? '',
       semantics:
-          '${l.cell(row * 5 + col + 1)}, ${value ?? l.empty}, ${fixed ? l.fixed : l.editable}${wrong ? ', ${l.incorrect}' : ''}${correct ? ', ${l.correct}' : ''}',
+          '${l.cell(row * game.puzzle.columns + col + 1)}, ${value ?? l.empty}, ${fixed ? l.fixed : l.editable}${wrong ? ', ${l.incorrect}' : ''}${correct ? ', ${l.correct}' : ''}',
       selected: selected == id,
       hover: hover,
       fixed: fixed,

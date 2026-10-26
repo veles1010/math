@@ -188,4 +188,48 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get viewResult => 'Sonucu gör';
+
+  @override
+  String get replayEasy => 'Bu kolay bulmacayı tekrar oyna';
+
+  @override
+  String get startNew => 'Yenisini başlat';
+
+  @override
+  String get newEasyPuzzle => 'Yeni bulmaca — Kolay';
+
+  @override
+  String get keepPuzzle => 'Mevcut bulmacayı koru';
+
+  @override
+  String get generationFailed =>
+      'Yeni bulmaca hazırlanamadı. Mevcut oyunun korundu. Lütfen tekrar dene.';
+
+  @override
+  String get easyPuzzle => 'Kolay bulmaca';
+
+  @override
+  String get generating => 'Bulmaca hazırlanıyor…';
+
+  @override
+  String get replacePuzzleTitle => 'Yeni kolay bulmaca başlatılsın mı?';
+
+  @override
+  String easyCompletedCount(int count) {
+    return 'Tamamlanan kolay bulmaca: $count';
+  }
+
+  @override
+  String get continueEasy => 'Kolay bulmacaya devam et';
+
+  @override
+  String get fallbackNotice =>
+      'Üretim tamamlanamadığı için doğrulanmış yedek bir bulmaca kullanıldı.';
+
+  @override
+  String get replacePuzzleBody =>
+      'Yarım kolay bulmacanın yerine yenisi gelecek. Üç sabit bölüm korunur.';
+
+  @override
+  String get practiceLevels => 'Alıştırma bölümleri';
 }

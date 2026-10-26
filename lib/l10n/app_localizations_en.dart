@@ -187,4 +187,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewResult => 'View result';
+
+  @override
+  String get replayEasy => 'Play this easy puzzle again';
+
+  @override
+  String get startNew => 'Start new';
+
+  @override
+  String get newEasyPuzzle => 'New puzzle — Easy';
+
+  @override
+  String get keepPuzzle => 'Keep current puzzle';
+
+  @override
+  String get generationFailed =>
+      'A new puzzle could not be created. Your current game is safe. Please try again.';
+
+  @override
+  String get easyPuzzle => 'Easy puzzle';
+
+  @override
+  String get generating => 'Creating puzzle…';
+
+  @override
+  String get replacePuzzleTitle => 'Start a new easy puzzle?';
+
+  @override
+  String easyCompletedCount(int count) {
+    return 'Easy puzzles completed: $count';
+  }
+
+  @override
+  String get continueEasy => 'Continue easy puzzle';
+
+  @override
+  String get fallbackNotice =>
+      'A verified reserve puzzle was used because generation did not finish.';
+
+  @override
+  String get replacePuzzleBody =>
+      'Your unfinished easy puzzle will be replaced. The three fixed levels are kept.';
+
+  @override
+  String get practiceLevels => 'Practice levels';
 }

@@ -98,5 +98,25 @@
   },
   "legacyTimeNotice": "The previous version did not record time. Only play time since this update is measured.",
   "replay": "Play again",
-  "viewResult": "View result"
+  "viewResult": "View result",
+  "replayEasy": "Play this easy puzzle again",
+  "startNew": "Start new",
+  "newEasyPuzzle": "New puzzle — Easy",
+  "keepPuzzle": "Keep current puzzle",
+  "generationFailed": "A new puzzle could not be created. Your current game is safe. Please try again.",
+  "easyPuzzle": "Easy puzzle",
+  "generating": "Creating puzzle…",
+  "replacePuzzleTitle": "Start a new easy puzzle?",
+  "easyCompletedCount": "Easy puzzles completed: {count}",
+  "continueEasy": "Continue easy puzzle",
+  "fallbackNotice": "A verified reserve puzzle was used because generation did not finish.",
+  "replacePuzzleBody": "Your unfinished easy puzzle will be replaced. The three fixed levels are kept.",
+  "@easyCompletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practiceLevels": "Practice levels"
 }

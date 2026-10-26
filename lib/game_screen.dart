@@ -21,6 +21,8 @@ class GameScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final Future<void> Function()? onSettings;
   final ValueChanged<bool>? onTutorialDone;
+  final String? title, nextLabel;
+  final VoidCallback? onReplay;
   const GameScreen({
     super.key,
     required this.game,
@@ -30,6 +32,9 @@ class GameScreen extends StatefulWidget {
     this.onNext,
     this.onSettings,
     this.onTutorialDone,
+    this.title,
+    this.nextLabel,
+    this.onReplay,
   });
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -168,7 +173,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(tutorial ? l.howToPlay : l.level(widget.number)),
+          title: Text(
+            tutorial ? l.howToPlay : widget.title ?? l.level(widget.number),
+          ),
           actions: [
             if (tutorial)
               TextButton(
@@ -222,6 +229,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 celebrate: confetti,
                 onHome: _home,
                 onNext: widget.onNext,
+                title: widget.title,
+                nextLabel: widget.nextLabel,
+                onReplay: widget.onReplay,
               )
             : SafeArea(
                 bottom: false,
@@ -263,9 +273,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(
                                       horizontal: 12,
-                                      vertical: tutorial ? 12 : 16,
+                                      vertical: tutorial ? 12 : 8,
                                     ),
                                     child: PuzzleBoard(
+                                      fittingHeight: tutorial
+                                          ? null
+                                          : area.maxHeight - 16,
                                       game: game,
                                       selected: selected,
                                       large: settings.largeNumbers,
@@ -381,6 +394,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 }
 
 class ResultView extends StatelessWidget {
+  final String? title, nextLabel;
+  final VoidCallback? onReplay;
   final Game game;
   final int number;
   final AppSettings settings;
@@ -395,6 +410,9 @@ class ResultView extends StatelessWidget {
     required this.celebrate,
     required this.onHome,
     this.onNext,
+    this.title,
+    this.nextLabel,
+    this.onReplay,
   });
   @override
   Widget build(BuildContext context) {
@@ -421,7 +439,7 @@ class ResultView extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l.level(number),
+                    title ?? l.level(number),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 12),
@@ -440,29 +458,40 @@ class ResultView extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(24),
                     child: SizedBox(
-                      width: 220,
+                      key: const ValueKey('result-preview'),
+                      width: game.puzzle.columns > 5 ? 320 : 220,
                       child: PuzzleBoard(
                         game: game,
                         interactive: false,
+                        fittingHeight: 240,
                         slash: settings.slash,
                       ),
                     ),
                   ),
                   Text(
-                    number == puzzles.length ? l.allComplete : l.wellDone,
+                    title == null && number == puzzles.length
+                        ? l.allComplete
+                        : l.wellDone,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  if (onNext != null && number < puzzles.length)
+                  if (onNext != null &&
+                      (title != null || number < puzzles.length))
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
                         onPressed: onNext,
                         icon: const Icon(Icons.arrow_forward_rounded),
-                        label: Text(l.nextLevel),
+                        label: Text(nextLabel ?? l.nextLevel),
                       ),
                     ),
                   const SizedBox(height: 8),
+                  if (onReplay != null)
+                    TextButton.icon(
+                      onPressed: onReplay,
+                      icon: const Icon(Icons.replay_rounded),
+                      label: Text(l.replay),
+                    ),
                   OutlinedButton.icon(
                     onPressed: onHome,
                     icon: const Icon(Icons.home_outlined),
