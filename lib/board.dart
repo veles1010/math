@@ -14,6 +14,8 @@ class PuzzleBoard extends StatelessWidget {
   final void Function(String, String?)? onTransfer;
   final ValueChanged<bool>? onDragging;
   final bool Function(String, String?)? allow;
+  final double? fittingHeight;
+  final double? cellExtent;
   const PuzzleBoard({
     super.key,
     required this.game,
@@ -26,45 +28,80 @@ class PuzzleBoard extends StatelessWidget {
     this.onTransfer,
     this.onDragging,
     this.allow,
+    this.fittingHeight,
+    this.cellExtent,
   });
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, c) {
-      final size = math.min(64.0, (c.maxWidth - 16) / 5);
-      final width = size * 5 + 16;
-      return Center(
-        child: SizedBox(
-          width: width,
-          height: size * game.puzzle.rows + 4 * (game.puzzle.rows - 1),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var row = 0; row < game.puzzle.rows; row++)
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: row == game.puzzle.rows - 1 ? 0 : 4,
-                  ),
-                  child: Row(
-                    children: [
-                      for (var col = 0; col < 5; col++)
-                        Padding(
-                          padding: EdgeInsets.only(right: col == 4 ? 0 : 4),
-                          child: SizedBox(
-                            width: size,
-                            height: size,
-                            child: _cell(context, row, col),
-                          ),
-                        ),
-                    ],
-                  ),
+      if (c.maxWidth <= 0 || c.maxHeight <= 0) return const SizedBox.shrink();
+      final columns = game.puzzle.columns;
+      if (c.maxWidth <= columns - 1 || c.maxHeight <= game.puzzle.rows - 1) {
+        return const SizedBox.shrink();
+      }
+      final states = game.equationStates;
+      final paths = [
+        for (var i = 0; i < states.length; i++)
+          game.puzzle.equationCoordinates(i),
+      ];
+      final fit = (c.maxWidth - (columns - 1)) / columns;
+      final heightLimit = math.min(
+        fittingHeight ?? double.infinity,
+        c.maxHeight,
+      );
+      final heightFit = heightLimit.isFinite
+          ? (heightLimit - (game.puzzle.rows - 1)) / game.puzzle.rows
+          : 64.0;
+      final size = cellExtent ?? math.min(64.0, math.min(fit, heightFit));
+      final width = size * columns + (columns - 1);
+      final grid = SizedBox(
+        key: const ValueKey('board-grid'),
+        width: width,
+        height: size * game.puzzle.rows + (game.puzzle.rows - 1),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var row = 0; row < game.puzzle.rows; row++)
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: row == game.puzzle.rows - 1 ? 0 : 1,
                 ),
-            ],
-          ),
+                child: Row(
+                  children: [
+                    for (var col = 0; col < columns; col++)
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: col == columns - 1 ? 0 : 1,
+                        ),
+                        child: SizedBox(
+                          width: size,
+                          height: size,
+                          child: _cell(context, row, col, states, paths),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
         ),
+      );
+      return Center(
+        child: width <= c.maxWidth + .01
+            ? grid
+            : SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: grid,
+              ),
       );
     },
   );
-  Widget _cell(BuildContext context, int row, int col) {
+  Widget _cell(
+    BuildContext context,
+    int row,
+    int col,
+    List<bool?> states,
+    List<List<(int, int)>> paths,
+  ) {
     final l = AppLocalizations.of(context)!;
     final position = (row, col);
     final id = game.puzzle.positions.entries
@@ -74,14 +111,16 @@ class PuzzleBoard extends StatelessWidget {
     final symbol = game.puzzle.symbols[position];
     if (id == null && symbol == null) return const SizedBox.shrink();
     final equations = [
-      for (var i = 0; i < game.puzzle.equations.length; i++)
-        if (game.puzzle.equationCoordinates(i).contains(position)) i,
+      for (var i = 0; i < paths.length; i++)
+        if (paths[i].contains(position)) i,
     ];
-    final wrong = equations.any((i) => game.equationStates[i] == false);
-    final correct = equations.any((i) => game.equationStates[i] == true);
+    final wrong = equations.any((i) => states[i] == false);
+    final correct = equations.any((i) => states[i] == true);
     final pulse = equations.any(celebrating.contains);
     if (id == null) {
       return Stone(
+        boardCell: true,
+        key: ValueKey('symbol-$row-$col'),
         label: symbol == '÷' && slash ? '/' : symbol!,
         semantics: symbol!,
         operatorCell: true,
@@ -95,10 +134,11 @@ class PuzzleBoard extends StatelessWidget {
         value = game.value(id),
         tileId = game.placed[id];
     Widget stone({bool hover = false}) => Stone(
+      boardCell: true,
       key: ValueKey('cell-$id'),
       label: value?.toString() ?? '',
       semantics:
-          '${l.cell(row * 5 + col + 1)}, ${value ?? l.empty}, ${fixed ? l.fixed : l.editable}${wrong ? ', ${l.incorrect}' : ''}${correct ? ', ${l.correct}' : ''}',
+          '${l.cell(row * game.puzzle.columns + col + 1)}, ${value ?? l.empty}, ${fixed ? l.fixed : l.editable}${wrong ? ', ${l.incorrect}' : ''}${correct ? ', ${l.correct}' : ''}',
       selected: selected == id,
       hover: hover,
       fixed: fixed,
@@ -129,6 +169,36 @@ class PuzzleBoard extends StatelessWidget {
       },
     );
   }
+}
+
+/// Fitted and playable by default; no minimum cell size overrides visibility.
+class ReadableBoard extends StatelessWidget {
+  final int rows, columns;
+  final bool dragging;
+  final Widget Function(double extent, bool playable) builder;
+  const ReadableBoard({
+    super.key,
+    required this.rows,
+    required this.columns,
+    required this.dragging,
+    required this.builder,
+  });
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, area) {
+      if (area.maxWidth <= columns - 1 || area.maxHeight <= rows - 1) {
+        return const SizedBox.shrink();
+      }
+      final extent = math.min(
+        64.0,
+        math.min(
+          (area.maxWidth - (columns - 1)) / columns,
+          (area.maxHeight - (rows - 1)) / rows,
+        ),
+      );
+      return builder(extent, true);
+    },
+  );
 }
 
 class TileDrag extends StatelessWidget {
@@ -185,6 +255,8 @@ class PoolPanel extends StatelessWidget {
   final Game game;
   final String? selected;
   final bool large;
+  final bool safeBottom;
+  final double maxInventoryHeight;
   final void Function(String, String?) onTransfer;
   final VoidCallback onUndo, onReturn, onSort;
   final ValueChanged<bool> onDragging;
@@ -194,6 +266,8 @@ class PoolPanel extends StatelessWidget {
     required this.game,
     this.selected,
     this.large = false,
+    this.safeBottom = true,
+    this.maxInventoryHeight = double.infinity,
     required this.onTransfer,
     required this.onUndo,
     required this.onReturn,
@@ -210,90 +284,106 @@ class PoolPanel extends StatelessWidget {
       onAcceptWithDetails: (d) => onTransfer(d.data, null),
       builder: (context, candidates, rejected) => Container(
         key: const ValueKey('pool'),
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+        padding: const EdgeInsets.fromLTRB(6, 6, 6, 4),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
           border: Border.all(
             color: candidates.isNotEmpty
                 ? theme.colorScheme.primary
                 : theme.colorScheme.outlineVariant,
-            width: candidates.isNotEmpty ? 2 : 1,
+            width: 1,
           ),
         ),
         child: SafeArea(
           top: false,
+          bottom: safeBottom,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               LayoutBuilder(
                 builder: (context, c) {
+                  if (c.maxWidth <= 0) return const SizedBox.shrink();
                   final columns = math.max(
                     1,
                     math.min(
                       game.poolOrder.length,
-                      math.min(7, ((c.maxWidth + 6) / 58).floor()),
+                      math.min(
+                        math.max(1, ((c.maxWidth + 4) / 16).floor()),
+                        game.poolOrder.length > 10
+                            ? 7
+                            : math.min(7, ((c.maxWidth + 4) / 44).floor()),
+                      ),
                     ),
                   );
                   final extent = math.min(
-                    60.0,
-                    (c.maxWidth - (columns - 1) * 6) / columns,
+                    52.0,
+                    (c.maxWidth - (columns - 1) * 4) / columns,
                   );
                   final rows = (game.poolOrder.length / columns).ceil();
+                  final tileHeight = math.min(48.0, extent + 2);
                   return SizedBox(
-                    height: rows * (extent + 6),
-                    child: Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        for (final id in game.poolOrder)
-                          SizedBox(
-                            key: ValueKey('slot-$id'),
-                            width: extent,
-                            height: extent,
-                            child: game.placed.containsValue(id)
-                                ? DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: theme.colorScheme.outlineVariant,
+                    height: math.min(
+                      rows * (tileHeight + 4),
+                      maxInventoryHeight,
+                    ),
+                    child: SingleChildScrollView(
+                      key: const ValueKey('pool-viewport'),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: [
+                          for (final id in game.poolOrder)
+                            SizedBox(
+                              key: ValueKey('slot-$id'),
+                              width: extent,
+                              height: tileHeight,
+                              child: game.placed.containsValue(id)
+                                  ? DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color:
+                                              theme.colorScheme.outlineVariant,
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
                                       ),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  )
-                                : TileDrag(
-                                    tileId: id,
-                                    value: game.tile(id)!.value,
-                                    large: large,
-                                    onDragging: onDragging,
-                                    child: Stone(
-                                      key: ValueKey('tile-$id'),
-                                      label: '${game.tile(id)!.value}',
-                                      semantics: l.poolTile(
-                                        game.tile(id)!.value,
-                                      ),
+                                    )
+                                  : TileDrag(
+                                      tileId: id,
+                                      value: game.tile(id)!.value,
                                       large: large,
-                                      onTap:
-                                          selected == null ||
-                                              !(allow?.call(id, selected) ??
-                                                  true)
-                                          ? null
-                                          : () => onTransfer(id, selected),
+                                      onDragging: onDragging,
+                                      child: Stone(
+                                        key: ValueKey('tile-$id'),
+                                        label: '${game.tile(id)!.value}',
+                                        semantics: l.poolTile(
+                                          game.tile(id)!.value,
+                                        ),
+                                        large: large,
+                                        onTap:
+                                            selected == null ||
+                                                !(allow?.call(id, selected) ??
+                                                    true)
+                                            ? null
+                                            : () => onTransfer(id, selected),
+                                      ),
                                     ),
-                                  ),
-                          ),
-                      ],
+                            ),
+                        ],
+                      ),
                     ),
                   );
                 },
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Row(
+                key: const ValueKey('pool-controls'),
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(48, 52),
+                        minimumSize: const Size(48, 48),
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         textStyle: const TextStyle(
                           fontSize: 16,
@@ -310,7 +400,7 @@ class PoolPanel extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(48, 52),
+                        minimumSize: const Size(48, 48),
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         textStyle: const TextStyle(
                           fontSize: 16,
@@ -357,6 +447,7 @@ class Stone extends StatelessWidget {
       large,
       operatorCell;
   final VoidCallback? onTap;
+  final bool boardCell;
   const Stone({
     super.key,
     required this.label,
@@ -372,11 +463,112 @@ class Stone extends StatelessWidget {
     this.large = false,
     this.operatorCell = false,
     this.onTap,
+    this.boardCell = false,
   });
+  Widget _compact(BuildContext context) => LayoutBuilder(
+    builder: (context, c) {
+      final colors = Theme.of(context).colorScheme;
+      final side = math.min(c.maxWidth, c.maxHeight);
+      return Semantics(
+        label: semantics,
+        selected: selected,
+        button: onTap != null,
+        excludeSemantics: true,
+        child: Material(
+          color: hover
+              ? colors.primaryContainer
+              : pulse
+              ? colors.secondaryContainer
+              : empty
+              ? colors.secondaryContainer.withValues(alpha: .35)
+              : fixed
+              ? colors.secondaryContainer.withValues(alpha: .6)
+              : colors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(1),
+            side: BorderSide(
+              color: wrong
+                  ? colors.error
+                  : selected || hover
+                  ? colors.primary
+                  : colors.outlineVariant,
+              width: selected || hover || wrong ? 1.8 : .65,
+            ),
+          ),
+          child: InkWell(
+            onTap: onTap,
+            child: Stack(
+              children: [
+                if (!empty)
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.all(1),
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            label,
+                            key: const ValueKey('board-label'),
+                            style: TextStyle(
+                              fontSize: side * (large ? .76 : .64),
+                              height: 1,
+                              fontWeight: operatorCell
+                                  ? FontWeight.w500
+                                  : FontWeight.w700,
+                              color: operatorCell
+                                  ? colors.onSurface
+                                  : colors.secondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (fixed)
+                  Positioned(
+                    bottom: 1,
+                    right: 1,
+                    child: SizedBox(
+                      width: side * .16,
+                      height: 1,
+                      child: ColoredBox(color: colors.onSurfaceVariant),
+                    ),
+                  ),
+                if (placed && !wrong)
+                  Positioned(
+                    top: 1,
+                    left: 1,
+                    child: Container(
+                      width: 2,
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: colors.secondary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                if (wrong)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Icon(
+                      Icons.priority_high,
+                      size: math.min(8, side * .3),
+                      color: colors.error,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context), s = t.colorScheme;
     final reduce = MediaQuery.disableAnimationsOf(context);
+    if (boardCell) return _compact(context);
     return Semantics(
       label: semantics,
       selected: selected,
@@ -429,19 +621,15 @@ class Stone extends StatelessWidget {
                   children: [
                     Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(6),
+                        padding: EdgeInsets.all(large ? 2 : 4),
                         child: empty
-                            ? Icon(
-                                Icons.more_horiz_rounded,
-                                size: 19,
-                                color: s.onSurfaceVariant,
-                              )
+                            ? const SizedBox.shrink()
                             : FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Text(
                                   label,
                                   style: TextStyle(
-                                    fontSize: large ? 40 : 30,
+                                    fontSize: large ? 32 : 26,
                                     fontWeight: operatorCell
                                         ? FontWeight.w500
                                         : FontWeight.w800,

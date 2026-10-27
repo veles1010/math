@@ -72,7 +72,11 @@ void main() {
       tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
       ThemeMode.dark,
     );
-    await tester.ensureVisible(find.textContaining('1 ·'));
+    await tester.scrollUntilVisible(
+      find.textContaining('1 ·'),
+      140,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.textContaining('1 ·'));
     await tester.pumpAndSettle();

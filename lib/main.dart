@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import 'game.dart';
 import 'game_screen.dart';
 import 'store.dart';
 import 'theme.dart';
 import 'l10n/app_localizations.dart';
+import 'easy_generator.dart';
+import 'easy_fallback.dart';
+import 'generated_puzzle.dart';
 export 'game_screen.dart' show GameScreen;
 
 void main() {
@@ -13,7 +17,8 @@ void main() {
 }
 
 class MathPuzzleApp extends StatefulWidget {
-  const MathPuzzleApp({super.key});
+  final Future<Map<String, dynamic>> Function(int)? generate;
+  const MathPuzzleApp({super.key, this.generate});
   @override
   State<MathPuzzleApp> createState() => _MathPuzzleAppState();
 }
@@ -22,6 +27,113 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
   final store = AppStore();
   bool tutorialOffered = false;
   final levelsKey = GlobalKey();
+  bool generating = false;
+  Future<void> openEasy(
+    BuildContext context, {
+    bool replace = false,
+    bool replay = false,
+  }) async {
+    if (generating) return;
+    if (replay) {
+      await store.replayGenerated();
+    }
+    final game = store.generatedGame;
+    if (game == null) return;
+    if (!context.mounted) return;
+    final route = MaterialPageRoute<void>(
+      builder: (routeContext) => ListenableBuilder(
+        listenable: store,
+        builder: (context, _) {
+          final l = AppLocalizations.of(context)!;
+          return GameScreen(
+            key: ValueKey(game.puzzle.id),
+            game: game,
+            number: 0,
+            title: l.easyPuzzle,
+            nextLabel: l.newEasyPuzzle,
+            settings: store.settings,
+            onChanged: store.save,
+            onSettings: () => settings(routeContext),
+            onNext: () => createEasy(routeContext, replace: true),
+            onReplay: () => openEasy(routeContext, replace: true, replay: true),
+          );
+        },
+      ),
+    );
+    if (replace) {
+      await Navigator.of(context).pushReplacement(route);
+    } else {
+      await Navigator.of(context).push(route);
+    }
+  }
+
+  Future<void> createEasy(BuildContext context, {bool replace = false}) async {
+    if (generating) return;
+    final l = AppLocalizations.of(context)!;
+    if (store.generatedGame?.canContinue == true) {
+      final discard = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l.replacePuzzleTitle),
+          content: Text(l.replacePuzzleBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.keepPuzzle),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.startNew),
+            ),
+          ],
+        ),
+      );
+      if (discard != true || !context.mounted) return;
+    }
+    setState(() => generating = true);
+    GeneratedPuzzle? puzzle;
+    var fallback = false;
+    var family = EasyGenerator.families.first;
+    try {
+      for (var retry = 0; retry < 3 && puzzle == null; retry++) {
+        final seed = store.reserveEasySeed();
+        family = EasyGenerator.families[seed % 4];
+        final result =
+            await (widget.generate?.call(seed) ??
+                    compute(generateEasyMessage, seed))
+                .timeout(const Duration(seconds: 3));
+        debugPrint('easy-generator seed=$seed ${result['report']}');
+        if (result['definition'] != null) {
+          final candidate = GeneratedPuzzle.fromDefinition(
+            (result['definition'] as Map).cast<String, dynamic>(),
+          );
+          if (!store.recentGenerated.contains(candidate.fingerprint)) {
+            puzzle = candidate;
+          }
+        }
+      }
+    } catch (error) {
+      debugPrint('easy-generator failed: $error');
+    }
+    if (puzzle == null) {
+      puzzle = pickFallback(family, store.recentGenerated.toSet());
+      fallback = puzzle != null;
+    }
+    if (!mounted) return;
+    setState(() => generating = false);
+    if (puzzle == null) {
+      store.save();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l.generationFailed)));
+      }
+      return;
+    }
+    await store.installGenerated(puzzle, fallback: fallback);
+    if (!context.mounted) return;
+    await openEasy(context, replace: replace);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +174,7 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
     int index, {
     bool replace = false,
   }) async {
+    if (generating) return;
     final game = store.games[index];
     if (game.complete) {
       final l = AppLocalizations.of(context)!;
@@ -155,11 +268,6 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
             }
           }
           final completed = store.completedCount;
-          final unfinished = games.indexWhere((g) => g.canContinue);
-          final next = unfinished >= 0
-              ? unfinished
-              : games.indexWhere((g) => !g.completedOnce);
-          final active = next < 0 ? 0 : next;
           return Scaffold(
             appBar: AppBar(
               title: Text(l.appTitle),
@@ -207,54 +315,98 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.headlineMedium,
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 24),
+                            KeyedSubtree(
+                              key: store.generatedGame?.canContinue == true
+                                  ? null
+                                  : const ValueKey('new-easy'),
+                              child: FilledButton.icon(
+                                key: const ValueKey('primary-play'),
+                                onPressed: generating
+                                    ? null
+                                    : () {
+                                        if (store.generatedGame?.canContinue ==
+                                            true) {
+                                          openEasy(context);
+                                        } else {
+                                          createEasy(context);
+                                        }
+                                      },
+                                icon: generating
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Icon(
+                                        store.generatedGame?.canContinue == true
+                                            ? Icons.play_arrow_rounded
+                                            : Icons.add_rounded,
+                                      ),
+                                label: Text(
+                                  generating
+                                      ? l.generating
+                                      : store.generatedGame?.canContinue == true
+                                      ? l.resume
+                                      : l.newEasyPuzzle,
+                                ),
+                              ),
+                            ),
+                            if (store.generatedGame?.canContinue == true) ...[
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                key: const ValueKey('new-easy'),
+                                onPressed: generating
+                                    ? null
+                                    : () => createEasy(context),
+                                icon: const Icon(Icons.add_rounded),
+                                label: Text(l.newEasyPuzzle),
+                              ),
+                            ],
+                            const SizedBox(height: 8),
+                            Text(
+                              l.easyCompletedCount(
+                                store.generatedCompletedCount,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            if (store.generatedGame?.complete == true)
+                              TextButton(
+                                onPressed: () => openEasy(
+                                  context,
+                                  replay: store.generatedGame!.complete,
+                                ),
+                                child: Text(
+                                  store.generatedGame!.complete
+                                      ? l.replayEasy
+                                      : l.continueEasy,
+                                ),
+                              ),
+                            if (store.lastFallback)
+                              Text(
+                                l.fallbackNotice,
+                                textAlign: TextAlign.center,
+                              ),
+                            const SizedBox(height: 16),
+                            Text(
+                              l.practiceLevels,
+                              key: levelsKey,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 8),
                             Text(
                               l.completedCount(completed, games.length),
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(6),
                               child: LinearProgressIndicator(
                                 value: completed / games.length,
-                                minHeight: 7,
+                                minHeight: 5,
                               ),
-                            ),
-                            const SizedBox(height: 28),
-                            FilledButton.icon(
-                              key: const ValueKey('primary-play'),
-                              onPressed: () {
-                                if (next < 0) {
-                                  Scrollable.ensureVisible(
-                                    levelsKey.currentContext!,
-                                    duration: Duration(
-                                      milliseconds:
-                                          MediaQuery.disableAnimationsOf(
-                                            context,
-                                          )
-                                          ? 0
-                                          : 250,
-                                    ),
-                                  );
-                                } else {
-                                  openGame(context, active);
-                                }
-                              },
-                              icon: const Icon(Icons.play_arrow_rounded),
-                              label: Text(
-                                next < 0
-                                    ? l.viewLevels
-                                    : games[active].canContinue
-                                    ? l.resume
-                                    : l.play,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Text(
-                              l.chooseLevel,
-                              key: levelsKey,
-                              style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
                             for (var i = 0; i < games.length; i++)

@@ -241,9 +241,13 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(const MathPuzzleApp());
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byKey(const ValueKey('primary-play')));
+      await tester.scrollUntilVisible(
+        find.textContaining('1 ·'),
+        120,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('primary-play')));
+      await tester.tap(find.textContaining('1 ·'));
       await tester.pumpAndSettle();
       game = tester.widget<GameScreen>(find.byType(GameScreen)).game;
       expect(game.value('b'), 4);

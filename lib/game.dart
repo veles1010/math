@@ -73,6 +73,8 @@ class Puzzle {
   };
   int get rows =>
       positions.values.map((p) => p.$1).reduce((a, b) => a > b ? a : b) + 1;
+  int get columns =>
+      positions.values.map((p) => p.$2).reduce((a, b) => a > b ? a : b) + 1;
 }
 
 class TutorialPuzzle extends Puzzle {

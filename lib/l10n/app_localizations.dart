@@ -421,6 +421,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View result'**
   String get viewResult;
+
+  /// No description provided for @replayEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Play this easy puzzle again'**
+  String get replayEasy;
+
+  /// No description provided for @startNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Start new'**
+  String get startNew;
+
+  /// No description provided for @newEasyPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'New puzzle — Easy'**
+  String get newEasyPuzzle;
+
+  /// No description provided for @keepPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current puzzle'**
+  String get keepPuzzle;
+
+  /// No description provided for @generationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'A new puzzle could not be created. Your current game is safe. Please try again.'**
+  String get generationFailed;
+
+  /// No description provided for @easyPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy puzzle'**
+  String get easyPuzzle;
+
+  /// No description provided for @generating.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating puzzle…'**
+  String get generating;
+
+  /// No description provided for @replacePuzzleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new easy puzzle?'**
+  String get replacePuzzleTitle;
+
+  /// No description provided for @easyCompletedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy puzzles completed: {count}'**
+  String easyCompletedCount(int count);
+
+  /// No description provided for @continueEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue easy puzzle'**
+  String get continueEasy;
+
+  /// No description provided for @fallbackNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'A verified reserve puzzle was used because generation did not finish.'**
+  String get fallbackNotice;
+
+  /// No description provided for @replacePuzzleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your unfinished easy puzzle will be replaced. The three fixed levels are kept.'**
+  String get replacePuzzleBody;
+
+  /// No description provided for @practiceLevels.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice levels'**
+  String get practiceLevels;
+
+  /// No description provided for @qaBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Banner area · QA'**
+  String get qaBanner;
 }
 
 class _AppLocalizationsDelegate

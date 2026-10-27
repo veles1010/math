@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'game.dart';
+import 'generated_puzzle.dart';
+import 'easy_generator.dart';
 
 class AppSettings {
   ThemeMode theme = ThemeMode.system;
@@ -33,6 +35,72 @@ class AppSettings {
 class AppStore extends ChangeNotifier {
   final games = puzzles.map(Game.new).toList();
   final settings = AppSettings();
+  Game? generatedGame;
+  final Set<String> generatedCompletedIds = {};
+  final List<String> recentGenerated = [];
+  final Map<String, int> familyCounts = {};
+  String? lastFamily;
+  bool lastFallback = false;
+  int seedCounter = DateTime.now().microsecondsSinceEpoch % 500000000;
+  int get generatedCompletedCount => generatedCompletedIds.length;
+  Future<void> replayGenerated() {
+    final old = generatedGame;
+    if (old == null) return Future.value();
+    _countGenerated();
+    generatedGame = Game(old.puzzle)
+      ..restore(old.toJson())
+      ..replay();
+    return save();
+  }
+
+  int reserveEasySeed() {
+    final choices = EasyGenerator.families
+        .where((f) => f != lastFamily)
+        .toList();
+    choices.sort((a, b) {
+      final score = (familyCounts[a] ?? 0).compareTo(familyCounts[b] ?? 0);
+      return score == 0
+          ? EasyGenerator.families
+                .indexOf(a)
+                .compareTo(EasyGenerator.families.indexOf(b))
+          : score;
+    });
+    final family = EasyGenerator.families.indexOf(choices.first);
+    final seed = seedCounter * 4 + family;
+    seedCounter = (seedCounter + 1) % 500000000;
+    return seed;
+  }
+
+  void _countGenerated() {
+    if (generatedGame?.completedOnce == true) {
+      generatedCompletedIds.add(generatedGame!.puzzle.id);
+    }
+  }
+
+  Future<void> installGenerated(
+    GeneratedPuzzle puzzle, {
+    required bool fallback,
+  }) {
+    _countGenerated();
+    generatedGame = Game(puzzle)..beginSession();
+    lastFamily = puzzle.family;
+    familyCounts.update(puzzle.family, (n) => n + 1, ifAbsent: () => 1);
+    recentGenerated.add(puzzle.fingerprint);
+    if (recentGenerated.length > 20) recentGenerated.removeAt(0);
+    lastFallback = fallback;
+    return save();
+  }
+
+  Map<String, dynamic> _easyData() => {
+    'definition': (generatedGame?.puzzle as GeneratedPuzzle?)?.toDefinition(),
+    'session': generatedGame?.toJson(),
+    'completedIds': generatedCompletedIds.toList(),
+    'recent': recentGenerated,
+    'familyCounts': familyCounts,
+    'lastFamily': lastFamily,
+    'seedCounter': seedCounter,
+    'fallback': lastFallback,
+  };
   int get completedCount => games.where((g) => g.completedOnce).length;
   Future<void> replayLevel(int index) {
     games[index].replay();
@@ -72,6 +140,44 @@ class AppStore extends ChangeNotifier {
           await _backup(key, raw);
         }
       }
+      final easyRaw = _prefs!.getString('easy-session-v1');
+      if (easyRaw != null) {
+        try {
+          final data = jsonDecode(easyRaw) as Map<String, dynamic>;
+          Game? loaded;
+          if (data['definition'] != null) {
+            final puzzle = GeneratedPuzzle.fromDefinition(
+              (data['definition'] as Map).cast<String, dynamic>(),
+            );
+            loaded = Game(puzzle);
+            if (!loaded.restore(
+              (data['session'] as Map).cast<String, dynamic>(),
+            )) {
+              throw const FormatException('session');
+            }
+          }
+          final ids = (data['completedIds'] as List).cast<String>().toSet();
+          final recent = (data['recent'] as List).cast<String>();
+          final counts = (data['familyCounts'] as Map).cast<String, int>();
+          final counter = data['seedCounter'] as int;
+          if (recent.length > 20 ||
+              counter < 0 ||
+              counter >= 500000000 ||
+              counts.values.any((n) => n < 0)) {
+            throw const FormatException('history');
+          }
+          generatedGame = loaded;
+          generatedCompletedIds.addAll(ids);
+          recentGenerated.addAll(recent);
+          familyCounts.addAll(counts);
+          seedCounter = counter;
+          lastFamily = data['lastFamily'] as String?;
+          lastFallback = data['fallback'] == true;
+          _countGenerated();
+        } catch (_) {
+          await _backup('easy-session-v1', easyRaw);
+        }
+      }
     } catch (_) {
       saveError = true;
       _loadFailed = true;
@@ -103,9 +209,11 @@ class AppStore extends ChangeNotifier {
 
   Future<void> save() {
     if (_loadFailed) return Future.value();
+    _countGenerated();
     final values = <String, String>{
       'appearance': settings.theme.name,
       'settings-v2': jsonEncode(settings.toJson()),
+      'easy-session-v1': jsonEncode(_easyData()),
       for (final game in games)
         'game-${game.puzzle.id}': jsonEncode(game.toJson()),
     };
