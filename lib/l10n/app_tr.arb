@@ -118,5 +118,6 @@
       }
     }
   },
-  "practiceLevels": "Alıştırma bölümleri"
+  "practiceLevels": "Alıştırma bölümleri",
+  "qaBanner": "Banner alanı · QA"
 }

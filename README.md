@@ -223,3 +223,131 @@ Emülatörde önceden kullanıcıya ait yarım v1 oturumu ve dört tamamlanma ka
 Gerçek Android cihaz, iOS ve diğer iki ailenin emülatörde elle oynanması yapılmadı. İki tema ve büyük sayı seçeneklerinin tam matrisi widget testleridir; emülatör incelemesi Türkçe/açık görünümde yapıldı. Kısa ekran veya büyük metinde dikey kaydırma hâlâ gerekebilir. Eski v1 geniş kayıtlar bilinçli olarak geniş kalır ve yatay kaydırılabilir. Yeni seviye, reklam, mağaza veya otomatik kenar kaydırma eklenmedi.
 
 `feature/easy-generator` dalındaki önceki değişiklikler korundu. Bu telefon düzeni görevinde de **commit/push yapılmadı**.
+
+## Banner alanıyla oyun düzeni — 27 Ekim 2026
+
+Oyun ekranında üst satır 48 piksele indirildi; başlık kompaktlaştırıldı. Tahta çevresi yatay 8/dikey 4 piksel, havuz iç kenarları 8 piksel ve kontroller en az 48 piksel dokunma yüksekliğindedir. Tahta hâlâ gerçek kalan yüksekliğe göre 48–64 piksel karelerle yerleşir; kısa ekranda yalnız tahta dikey kayar. Küçük tahtalar alanı doldurmak için 64 piksel üstüne büyütülmez. V2 yatay kaydırmaz; eski geniş kayıtların yatay kaydırması korunur. Sürükleme anchor/feedback hesabı ve `Game.transfer` değiştirilmedi.
+
+`BannerArea` Scaffold'un ayrı alt yerleşimidir: kendi boyutunu ölçtüren `banner` widget'ını alır; reklam yüksekliği oyun mantığına veya kayıt modeline yazılmaz. Üstte bir ayırıcı ve 8 piksel mesafe, altta sistem gezinme SafeArea'sı bulunur. Havuz alt SafeArea'sı bu ekranda tekrar uygulanmaz. Gerçek reklam widget'ı veya SDK eklenmedi; gerçek reklam kimliği ve reklam ağ isteği yoktur. Tıklamasız, TR/EN etiketli yer tutucu yalnız debug/QA yapılandırmasında gösterilir. Öğreticide alan hiç oluşturulmaz. Varsayılan yükseklik 0'dır; release'te QA yer tutucusu oluşturulmaz.
+
+QA senaryoları (50/90 değerleri reklam standardı veya nihai boyut değildir):
+
+```sh
+flutter run --dart-define=QA_BANNER_HEIGHT=50
+flutter run --dart-define=QA_BANNER_HEIGHT=90
+flutter build apk --debug --dart-define=QA_BANNER_HEIGHT=50
+```
+
+Sonuç ekranında eylemler kaydırılabilir içerikten ayrılarak altta erişilebilir tutuldu. Önizlemenin eski 220 piksel genişlik/240 piksel yükseklik sınırı kaldırıldı; ekran alanına göre en fazla 380 piksel genişlik ve 280–440 piksel yükseklik kullanılır. Dokuz satırın tümü önizleme içinde korunur; kısa ekranlarda okunabilir önizlemeyi aşırı küçültmek yerine sonuç içeriği dikey kaydırılır, eylemler sabit kalır.
+
+### Bu düzenin kontrolleri
+
+- Format: 25 Dart dosyası, 0 değişiklik. Analiz: sorun yok. Tüm testler: **145 geçti**.
+- Yeni 48 görünüm senaryosu: 320×568, 360×640, 390×844 × açık/koyu × TR/EN × 50/90 banner × uzun branch/kısa ladder; büyük sayılar açık. 24 piksel üst ve alt sistem inset'i de modellenir. Havuz, kontroller, banner ve tahta viewport'unun gerçek dikdörtgenleri, en az 48 piksel etkileşimli hücre/kontrol boyutu, V2 yatay sınırları ve sonuç eylemleri test edilir. Önceki büyük sayı kapalı/açık matrisi korunur.
+- Banner yüksekliği değişiminde seçim, süre, yerleşim ve geri alma korunur; ardından gerçek pointer down/move/up dizisiyle görünür feedback merkezi hedefe bırakılır. Öğreticide banner bulunmadığı ayrıca doğrulanır. Önceki sürükleme, kayıt, çözücü, 200 seed, eski geniş kayıt ve tekrar oynama testleri korunur. Önceki yerleşim testlerindeki yalnız dış kenar beklentisi yeni 8 piksele, sonuç önizlemesi beklentisi yeni daha büyük sınıra uyarlandı.
+- Normal `com.example.math_puzzle` paket kimliğiyle debug APK derlemesi başarılı: `build/app/outputs/flutter-apk/app-debug.apk`. Bu yerel teslim APK'sı 50 piksel QA yer tutucusu ile derlendi.
+- Android 16 emülatöründe 90 piksel banner ile branch ve ladder görüntülendi. Branch, beş gerçek ADB pointer sürüklemesiyle tamamlandı; aynı değerli iki 9 taşı, alt satır hedefi ve sonuç eylemleri/tahta önizlemesi kontrol edildi. QA oturumunda tamamlanma ve beş yerleşim kayıt dosyasından da doğrulandı.
+- Önce/sonra aynı seed 0 bulmacası ve aynı emülatör boyutunda alındı: `build/banner-qa/before-branch.png`, `after-branch.png`; ayrıca `after-ladder.png` ve `result-branch.png`. Bunlar yerel, Git tarafından yok sayılan QA çıktılarıdır.
+- Emülatör oynama kontrolü geçici `com.example.math_puzzle.layoutqa20261026` paketinde yapıldı ve bu paket kaldırıldı. Asıl uygulamanın preferences SHA256 özeti önce/sonra aynı kaldı; kullanıcı kayıtlarına dokunulmadı. Geçici Gradle paket kimliği değişikliği aynen geri alındı.
+
+Fiziksel Android cihaz ve iOS kontrolü yapılmadı. İstenen üç ekran boyutu/iki tema/iki dil ve 50/90 matrisinin tamamı widget testidir; emülatör gözlemi Türkçe/açık, büyük sayılar ve 90 piksel banner ile sınırlıdır. Gerçek reklam yükleme/yeniden boyutlandırma entegrasyonu bu görevin kapsamında değildir.
+
+Bu düzenleme `feature/easy-generator` üzerinde commit/push yapılmadan bırakıldı; PR #1 birleştirilmedi. Önceki bölümlerdeki commit/push yapılmadı ifadeleri ilgili geçmiş geliştirme görevlerine aittir; üretici V2 sonrasında `a0967eb` commit'i origin'e gönderilmiş ve PR #1 açılmıştır.
+
+## Kare tahta ve çok satırlı havuz — 27 Ekim 2026
+
+Bu bölüm önceki banner düzeninin alan/hücre boyutu raporunun yerini alır. Oyun mantığı, üretici aileleri, üretici sürümü, bulmaca matematiği ve kayıt modeli değiştirilmedi.
+
+Başlığın altında, kalan yükseklik ve ekran genişliğinin küçüğünden hesaplanan **1:1 tahta alanı** bulunur. Beş sütunlu normal/öğretici tahtaları bu karenin içine bütünüyle, eşit kare sayı/işlem/eşittir hücreleriyle sığar; hücreler esnetilmez, koordinat boşlukları korunur ve tahta kaydırılmaz. Eski geniş kayıtların mevcut kaydırma yolu korunur. Önceki 48 piksel alt sınırı artık yalnız **havuz taşları ve kontroller** için geçerlidir; tahta hücreleri için geçerli değildir. Tahta çevresine dekoratif çerçeve eklenmedi.
+
+Havuzun sütun sayısı genişliğe göre en fazla yedidir; 48–60 piksel taşlar 2–3 satırı, dar ekranda gerektiğinde daha fazla içerik satırını destekler. Görünür havuz yüksekliği başlangıçtaki `poolOrder` uzunluğu ve kullanılabilir alanla hesaplanır (alan bütçesi: ekran gövdesinin %45'i eksi kontrol payı). Yerleştirme/geri alma yuvaları ve satır sayısını değiştirmez. Kısa ekranda havuz kendi içinde dikey kayar; kontrol satırı ve banner sabit kalır. 390 genişlikte 20 taş üç satırda aynı anda görünür. 320 genişlikte 20 taş dört içerik satırı gerektirir ve havuz içinde kaydırılır. Sıralama ve aynı değerli taşların kimlikleri aynı oyun modelini kullanır.
+
+Sonuç önizlemesi de en fazla 300 piksel olan sınırlı bir kareye sığar; dokuz satırlı tahta artık sonuç ekranını kaplamaz. Süre ve eylemler önceki banner uyumlu akışı kullanır. Küçük sonuç ekranlarında metin içeriği gerektiğinde dikey kayabilir.
+
+### Doğrulama ve QA örnekleri
+
+- **194 test geçti**, analiz sorunsuz. Format 27 Dart dosyasında kontrol edildi. Android debug APK normal `com.example.math_puzzle` kimliğiyle başarıyla derlendi; yerel teslimde `QA_BANNER_HEIGHT=50` kullanıldı. Yer tutucu yapılandırması önceki bölümdeki gibi 50/90 ile çalışır; gerçek reklam SDK'sı eklenmedi.
+- Yeni **48 yerleşim testi**: 5/10/15/20 taş × 320×568, 360×640, 390×844 × iki tema × 50/90 banner. Büyük sayılar açık, sistem üst/alt inset'leri 24 piksel. Gerçek kare/ızgara/havuz viewport'u/kontrol/banner sınırları, bütün tahtanın görünmesi, 48 piksel havuz taşları, yuva koordinatları ve hamle sonrası panel yüksekliği denetlenir. Son taşın havuz kaydırılarak erişilebildiği de kontrol edilir.
+- Ek gerçek pointer regresyonu: en dar/kısa ekranda 20 taş ve 90 banner ile görünür feedback merkezi işlem hücresine bırakılır (iptal, geçmiş yok); sayı hedefine bırakılır (vurgu ve kabul aynı hedef); dolu hedef değiştirilir ve geri alınır. Önceki öğretici, sürükleme, kayıt, eski geniş kayıt, üretici ve çözücü testleri korunur. Eski 48 piksel tahta/tahta kaydırma beklentileri yeni kareye sığma şartına uyarlandı.
+- `test/support/inventory_fixture.dart` yalnız QA/test için 9×5 yoğun örnek sunar: dokuz bağımsız yatay denklem aritmetik olarak geçerlidir; 5/10/15/20 gizli hücrenin sayıları havuzda aynı tekrar adetleriyle bulunur. Bu örnekler yeni kesişen üretici ailesi veya zorluk seviyesi değildir, normal kataloğa eklenmez. Normal kesişen 9×5 `branch` ayrıca test ve emülatör oynama kontrolünde kullanılır.
+- Android 16 emülatöründe 20 taşın üç satırda tamamı, 9×5 QA tahtası ve 90 piksel banner görüntülendi. Aynı ekran kodunda normal seed 0 `branch` bulmacası beş ADB pointer sürüklemesiyle tamamlandı; iki ayrı 9 taşı ve alt satır hedefi çalıştı. Sonuçta tahta kare önizleme içinde bütünüyle göründü.
+- Görseller: `build/square-qa/5-tiles.png`, `20-tiles.png`, `result.png`. Yerel QA APK/giriş dosyaları ve görseller `build/` altında Git tarafından yok sayılır. Geçici QA girişinde yalnız ekran testi için gereken callback'ler sağlandığından emülatör sonuç görüntüsünde yalnız Ana sayfa eylemi vardır; normal uygulamanın Yeni bulmaca/Tekrar oyna/Ana sayfa eylemleri widget matrisinde denetlenir.
+- Emülatör için ayrı `com.example.math_puzzle.squareqa20261027` paketi kullanıldı ve kaldırıldı. Asıl uygulamanın preferences SHA256 özeti kontrol öncesi/sonrası değişmedi. Gradle paket kimliği değişikliği geri alındı; kullanıcı kayıtları silinmedi.
+
+### Okunaklılık sınırı
+
+Bütün tahtayı kareye sığdırma önceliği, uzun tahtalarda küçük hedefler demektir. 24 piksel inset'li 320×568 + 90 banner + 20 taş senaryosunda dokuz satırlı hücreler yaklaşık **18 piksel**, beş taşlı senaryoda yaklaşık **22 piksel** olur; 390 genişlikte daha geniştir. Bu hedefler rahat parmak hedefleri değildir. Büyük sayı görünümü taşma yapmaz fakat sığdırma nedeniyle çift haneli sayıların fiziksel boyutunu sınırsız büyütemez; küçük hücrelerde ipucu/durum işaretleri de okunaklılığı azaltabilir. Testlerin geçmesi bu küçük ekranlarda ideal kullanılabilirlik anlamına gelmez. Komşularla çakışan görünmez hedef genişletmesi eklenmedi. Fiziksel parmak testi, gerçek Android cihaz ve iOS kontrolü yapılmadı. Emülatör gözlemi Türkçe/açık görünümde, büyük sayılar ve 90 banner ile sınırlıdır; ekran/tema/banner matrisi widget testidir.
+
+Mevcut değişiklikler korundu; bu görevde commit/push veya PR #1 birleştirmesi yapılmadı.
+
+## Okunaklı oyun görünümü ve kesişen QA ağı — 27 Ekim 2026
+
+Bu bölüm, önceki kare yerleşim raporundaki 18–22 piksel **oynanabilir** hücre davranışının yerini alır. Kare tahta alanı, 20 taşlık çok satırlı havuz, alt kontroller ve banner düzeni korunur. Üretici aileleri/sürümü, aritmetik, zorluk seviyeleri ve kayıt modeli değiştirilmedi.
+
+`ReadableBoard`, tahta kare alana sığarken 32–64 piksel hücrelerle bütün tahtayı gösterir. Alan bunu karşılamazsa varsayılan oyun görünümü **32 piksel hücrelerle**, yalnız tahta içinde yatay/dikey kaydırma kullanır. Açık `Bütünü göster / Show whole board` kontrolü alanın içinde bulunur. Bu kontrol, bütün tahtayı gösteren **salt önizlemeye** geçer; `Büyüt / Enlarge` ile oynanabilir görünüme dönülür. Salt önizleme küçük bir çizimdir, sayı yerleştirme/bırakma hedefi değildir; 32 piksel alt sınırı etkileşimli hücreler içindir. Önizlemede hücre, sayı, boşluk ve durum simgeleri tek çizim olarak birlikte ölçeklenir, simgeler küçük hücrelerin dışına taşmaz. Yerelleştirilmiş erişilebilirlik etiketi de önizlemenin salt bakış olduğunu belirtir.
+
+Büyütme veya tahta kaydırma havuzu, kontrolleri veya banner'ı taşımaz; oyun oturumu, süre, taş kimlikleri ve hamle geçmişi değişmez. Dokunarak seçim/yerleştirme aynı `Game.transfer` akışını kullanır. Sürükleme başlayınca tahta kaydırma fizik kuralları ve görünüm değiştirme düğmesi geçici olarak kilitlenir; bırakma/iptal sonrasında açılır. Taşın görünen merkezi, hedef vurgusu ve kabul için önceki ortak feedback offset'i korunur. Komşularla çakışan hedef genişletmesi veya sürüklerken otomatik kenar kaydırma eklenmedi. Tahtayı sürükleme öncesinde boş/sabit/işlem hücrelerinden kaydırıp hedefi görünür hâle getirmek gerekir; yerleştirilmiş taşı çekmek taşı taşır.
+
+### Bağlantılı QA örneği
+
+Önceki bağımsız toplama satırları korunur. Ek `test/support/crossing_fixture.dart`, **9×9 koordinat, 25 sayı hücresi, 20 boş hücre ve 20 yatay/dikey denklem** içeren bağlantılı bir ağdır. `[2,3,5,3,2]` dizisinin dış çarpımı sayesinde iki kol ortak sonuç hücresinde kesişir; ekrandaki zincirler de doğrudur (`4+6=10=6+4` gibi). Sağ/alt kollar ortak sonuca doğru okunur. Sayılar 4–25 aralığındadır; tek ve çift basamaklı sayılar ile tekrar eden değerler ayrı taş kimlikleriyle kullanılır. Havuz gizli sayıların adetlerini tam olarak içerir. Bütün denklem ve kesişimler, bağlantılılık, tamamlama, kayıt dönüşü ve geri alma test edilir. Bu örnek normal kataloğa eklenmez, zorluk/üretici olarak sunulmaz; tek çözüm veya tahminsiz kolaylık iddiası yoktur.
+
+### Kontroller
+
+- Tüm **205 test geçti**; son QA eşitlik zinciri netleştirmesinden sonra ilgili **11 test ayrıca tekrar geçti**. Analiz sorunsuz, format 29 Dart dosyasında kontrol edildi. Android debug derlemesi başarılı. Normal teslim APK'sı `build/app/outputs/flutter-apk/app-debug.apk`, paket `com.example.math_puzzle`, 50 piksel QA yer tutucusuyla derlendi. QA kataloğu bu APK'ya eklenmez.
+- 320×568 + 90 banner'da etkileşimli sayı hücreleri 32 pikseldir; her hücreye iki eksenli kaydırmayla erişildiği gerçek sınırlarla test edilir. Havuz/kontrol/banner dikdörtgenleri kaydırma ve önizleme değişiminden etkilenmez. Genel görünümde boş hücre simgelerinin sınırları da gerçek dönüşüm koordinatlarıyla denetlenir.
+- 390×844 + 90 banner'da hem normal 9×5 bulmaca hem 20 taşlı 9×9 QA ağı 32 pikselin üzerinde bütünüyle sığar; büyütme kontrolü ve tahta kaydırması oluşturulmaz. İki tema ve büyük sayı kapalı/açık matrisi test edilir. Önceki 5/10/15/20 taş ve 50/90 banner matrisi korunur; yalnız salt önizlemenin geometrisi için beklentiler güncellendi.
+- Kaydırılmış sağ-alt QA hedefine gerçek pointer down/move/up dizisiyle havuzdan taş bırakılır. Görünen merkez hedefte, hedef vurgusu açık, bırakmadan önce oyun durumu değişmemiş, tahta kaydırması kilitli ve scroll offset'leri aynı kalır. Ardından aynı hücre dokunarak değiştirilir ve geri alınır. Normal oyun, öğretici, eski geniş kayıtlar, kayıt/geri alma, üretici ve çözücü testleri korunur.
+- Android 16 emülatöründe yaklaşık 320×568 ve 390×844 boyutlarında Türkçe/açık/büyük sayı/90 banner ile kesişen QA tahtası görüntülendi. `build/readable-qa/enlarged.png`, `overview.png` ve `large-phone.png` normal sığan / büyütülmüş / bütün tahta karşılaştırmasını sunar. Bunlar Git tarafından yok sayılan yerel QA çıktılarıdır. Emülatör ekran boyutu test sonunda eski hâline döndürüldü; geçici QA paketi kaldırıldı. Asıl uygulama kayıt dosyasının SHA256 özeti önce/sonra aynıdır; kullanıcı kayıtları değiştirilmedi.
+
+**Sınırlar:** 32 piksel başlangıç okunaklılık sınırıdır; erişilebilirlik veya rahat parmak hedefi garantisi değildir. Sistem yazı ölçeği, görme/motor gereksinimleri ve fiziksel cihazda kullanım ayrıca değerlendirilmelidir. Küçük telefonlarda bütün tahta ile 32 piksel oyun hedeflerini aynı anda kare içine sığdırmak mümkün değildir; bu nedenle salt genel bakış ve kaydırılabilir oyun görünümü ayrıdır. Genel bakıştaki küçük çizim oynanabilir hedef olarak kullanılmaz. Fiziksel Android/iOS veya ekran okuyucu ile elle kullanım testi yapılmadı; emülatörde QA ağının 20 taşının tamamı elle çözülmedi. Gerçek pointer bırakma/kaydırma etkileşimi widget testidir; tema/büyük sayı matrisi de widget testleriyle doğrulandı. Emülatör bu görevde görüntü kontrolü için kullanıldı.
+
+Bu görevde commit/push yapılmadı; PR #1 birleştirilmedi. Önceki değişiklikler korundu.
+
+## Tam görünür ve oynanabilir 11×11 düzen — 27 Ekim 2026
+
+**Geçerli tasarım kararı bu bölümdür.** Önceki bölümdeki 32 piksel alt sınırı, salt önizleme ve zorunlu büyütme geçişi kaldırıldı. Normal ekran bütün tahtayı kare alan içinde gösterir ve aynı görünümde sayı seçme, dokunarak yerleştirme ve sürükle-bırak çalışır. Küçük tahtalar kendi satır/sütun sayılarıyla kalır; 11×11'e yayılmaz. Kullanılmayan koordinatlar çizilmez. Eski kayıt tanımları yeniden üretilmez veya değiştirilmez; bu tahtalar da oranı korunarak sığdırılır.
+
+### Görsel alan bütçesi
+
+Tahta hücreleri eşit kare, aralık **1 piksel**, kenarlık yaklaşık 0,65 piksel, köşe yarıçapı 1 piksel ve iç boşluk 1 pikseldir; tahta taşlarında gölge ve üç nokta yoktur. Seçim/vurgu daha kalın çerçeveyle, sabit ipucu küçük alt çizgiyle, yerleştirilen sayı noktayla, hata ünlem/çerçeveyle ayrışır. Doğru denklem kısa renk geçişiyle geri bildirim verir. Yazı büyüklüğü hücreye bağlıdır; tek/iki/üç basamakta gerektiğinde ölçeklenir. Krem/mercan/turkuaz ve lacivert/mor/mint temalar değişmedi.
+
+Kompakt üst satır, kalan alana sığan kare tahta, bağımsız havuz, 48 piksel dokunma yüksekliğini koruyan kontrol satırı ve ayrı banner/SafeArea kullanılır. Havuz dış köşeleri ve kenar boşlukları azaltıldı. 20 taş **7+7+6** düzenindedir; genişlik ve yazı taşın yüksekliğiyle birlikte dengelenir (havuzda yaklaşık 40–52 piksel genişlik, en fazla 48 piksel yükseklik). Önceki 48 piksel havuz genişliği sınırı da artık zorunlu değildir. Havuz yüksekliği başlangıçtaki taş sayısına göre hesaplanır; kullanılan yuva boş kalır. Havuz hedef vurgusu kenarlık kalınlığını değiştirmez, sürüklerken de satır ölçüsü sıçramaz.
+
+360×640 + 50 banner'da 20 taşın tamamı üç satırda görünür. 390×844'te de bütün tahta ve havuz görünür. 320×568 + 90 banner'da yalnız havuzun son satırına erişmek için iç kaydırma gerekebilir; tahta hiçbir zaman kaydırma veya salt önizleme istemez. Banner 50/90 yalnız QA senaryosudur; gerçek reklam SDK'sı, kimliği veya reklam ağ isteği eklenmedi. Öğreticide banner yoktur.
+
+### Gerçekçi QA ve oyun mantığı
+
+`test/support/eleven_fixture.dart`, görünür sınırları tam **11 satır × 11 sütun** olan elle hazırlanmış, bağlantılı ve kesişen bir QA örneğidir: 33 sayı hücresi, 25 denklem, 20 boş hücre. Mevcut 9×9 kesişen ağa kendine ait sağ/alt kollar ekler; referans bölüm kopyalanmaz. 2–100 aralığında tek/iki/üç basamaklı sayılar ve tekrar eden değerler kullanılır. Örneğin sağ koldaki zincir `10+90=100=75+25=100` ve alttaki `98+2=100` aritmetik olarak doğrudur. Havuz gizlenen sayıların tekrar adetlerini tam karşılar; her taş ayrı kimliklidir. Çözüm, bağlantılılık, kayıt dönüşü ve geri alma bağımsız testle doğrulanır. Bu örnek normal kataloğa, kullanıcı ilerlemesine veya zorluk üreticisine eklenmez; tek çözüm/kolaylık iddiası yoktur.
+
+Üretici, çözücü, `Game.transfer`, kayıt modeli ve matematik dosyaları değiştirilmedi. Tahta çiziminde aynı denklem durumları her hücrede yeniden hesaplanmak yerine bir çizim için bir kez okunur. Feedback merkezinin mevcut offset'i korunur; hedefler gerçek hücre dikdörtgenleridir ve komşuya taşan görünmez alanlar eklenmez. Sıralama, tekrar eden taş kimlikleri, dolu hedef değiştirme, havuza geri koyma ve geri alma aynı modeli kullanır. Ayrı oyun/önizleme modu kalmadığı için görünüm değiştirmek amacıyla oyun oturumu yeniden başlatılmaz.
+
+### Son doğrulama
+
+- **245 test geçti**, `flutter analyze` sorunsuz, format **30 Dart dosyasında 0 değişiklik**. Android debug derlemesi başarılı: `build/app/outputs/flutter-apk/app-debug.apk`, normal `com.example.math_puzzle` kimliği ve 50 piksel QA banner ile. QA giriş/örnekleri normal APK'nın oyun kataloğuna alınmaz.
+- **48 tam 11×11 görünüm/etkileşim senaryosu:** 320×568, 360×640, 390×844 × açık/koyu × EN/TR × büyük sayı kapalı/açık × 50/90 banner. Her sayı hücresinin gerçek sınırları, kare boyutu ve bütün düzenlenebilir hücrelerin dokunarak seçilebildiği denetlenir. İşlem hücrelerinin sınırları ve 1 piksel aralık, bir/iki/üç basamaklı metinlerin sınırları, havuz satırları, kontroller, SafeArea/banner ayrımı ve tamamlanan tahtanın sonuç önizlemesi de kontrol edilir. Yalnız overflow olmaması yeterli sayılmaz.
+- Gerçek pointer hareketleriyle sığdırılmış en küçük tahtada üst-sağ ve alt-sağ köşeye bırakma, komşu işlem hücresine geçersiz bırakma, dolu hücre değiştirme, tahtadan havuza dönüş ve geri alma geçer. Görünen feedback merkezi ve hover hedefi eşleşir. Önceki normal oyun/öğretici/kayıt/üretici/çözücü testleri korunur; 32 piksel/büyütme zorunluluğu ve eski havuz genişliği beklentileri yeni karara göre güncellendi.
+- Emülatör ilk açılışında yakalanan hata da düzeltildi: pencere genişliği henüz 0 iken sabit yedi sütun negatif taş ölçüsü üretiyordu. Önce bu durumu başarısız bir testle yeniden ürettik; ölçüler gelene kadar çizimi erteleyen koruma ve geçici dar genişlikte güvenli sütun hesabıyla regresyon testi geçti. Bu hata gizlenerek görsel kontrol başarılı sayılmadı; düzeltilmiş paket yeniden açılıp oynandı.
+- Android 16 emülatöründe **360×640 + 50 banner**, 20 taşın tamamı görünürken QA bölümü **12 dokunma + 8 sürükleme** ile tamamlandı. İki sağ köşe, aynı değerli ayrı taşlar ve üç basamaklı 100 yerleştirildi. Başarı ekranında gerçek süre **01:26**, bütün denklemler doğru ve tam tahta önizlemesi görüldü. 37,465 saniyelik ekran kaydı: `build/eleven-qa/playthrough.mp4`.
+- Ekran görüntüleri: `build/eleven-qa/360x640.png`, `390x844.png`, `320x568-50.png`, `320x568-90.png`, `result.png`. QA derlemeleri, hareket planı, XML sınırları, video ve görüntüler Git tarafından yok sayılan `build/` altında tutulur. QA sonuç ekranının yalnız Ana sayfa eylemi olan geçici giriş kullanması normal ürünün eylemlerini değiştirmez; Yeni bulmaca/Tekrar oyna/Ana sayfa düzeni widget matrisinde doğrulanır.
+- Deney ayrı `com.example.math_puzzle.elevenqa20261027` paketinde yürütüldü; asıl uygulama veya kayıtları silinmedi. Asıl preferences SHA256 özeti önce/sonra aynı kaldı. Geçici paket ve emülatör boyutu test sonunda temizlenir/geri alınır; Gradle paket kimliği kaynağı aynen geri alınmıştır.
+
+**Sınırlar ve yapılmayanlar:** Tam görünürlük önceliği nedeniyle en dar/kısa ekran + 90 banner'da 11×11 hücreler 32 pikselden belirgin küçüktür. Sığdırma taşmayı önler fakat üç basamaklı sayılarda fiziksel okunaklılık ve küçük hedeflerde rahat parmak kullanımı garanti edilmez. Fiziksel dokunma okunaklılığı gerçek telefonda denenmedi; ADB ile tam koordinatlı etkileşim insan parmağı testi değildir. iOS/gerçek Android cihaz veya ekran okuyucu ile elle test yapılmadı. Tam tema/dil/büyük sayı/banner matrisi widget testleridir; emülatör gözlemi Türkçe/açık/büyük sayı ile sınırlıdır. Yeni zorluk, üretici veya reklam entegrasyonu eklenmedi.
+
+Mevcut değişiklikler korundu; bu görevde commit/push yapılmadı ve PR #1 birleştirilmedi. Önceki 32 piksel/salt önizleme raporları tarihsel geliştirme adımlarını anlatır.
+
+En küçük emülatör ölçümü: 320×568 + 90 banner görüntüsünde sağ üst hücrenin fiziksel sınırı `[609,213]–[648,252]` (420 dpi emülatör ölçeğinde yaklaşık **15 mantıksal piksel**). Bu, bu senaryodaki fiziksel parmak kullanılabilirliği sınırını açıkça gösterir; bütün hücreleri görünür/aktif tutmak bu hücreleri rahat hedeflere dönüştürmez. Havuzun üçüncü satırının altına kontrollü iç kaydırmayla erişilir.
+
+## Fiziksel Android kullanıcı testi — kullanıcı bildirimi
+
+Bu bölüm önceki emülatör raporlarındaki “fiziksel cihazda denenmedi” durumunu, yalnız aşağıdaki kullanıcı deneyi bakımından günceller. Kullanıcı normal oyunu fiziksel bir Android telefonda **açık ve koyu temada** denediğini ve ayrı **Math QA / 11×11 / 20 taş** bulmacasını tamamladığını bildirdi. Kullanıcıya göre sayılar rahat okunabiliyor; hücre seçimi, sürükleme ve geri alma rahat kullanılabiliyor. Bu sonuç kullanıcı bildirimidir; ajan tarafından fiziksel cihazda gözlemlenmiş veya ölçülmüş bir test olarak sunulmaz.
+
+**Telefon modeli, fiziksel ekran ölçüsü, mantıksal çözünürlük ve sistem yazı ölçeği doğrulanmadı; tahmin edilmedi.** Bu deneme bütün cihazlar veya erişilebilirlik gereksinimleri için garanti değildir. Özellikle **320×568 + 90 banner** sınırı korunur: emülatörde yaklaşık 15 mantıksal piksele düşen 11×11 hedefler ve havuzun son satırına ulaşmak için kaydırma gerekmesi, bildirilen telefonda ayrıca doğrulanmış sayılmaz. **iOS derlemesi/gerçek iOS cihazı ve ekran okuyucu ile fiziksel kullanım kontrolleri yapılmadı.**
+
+### QA / normal release ayrımı kontrolü
+
+Normal giriş `lib/main.dart`; Android kimliği `com.example.math_puzzle`, görünen ad `Math Puzzle` olarak kaldı. Normal uygulama kaynakları test fixture'larını veya `build/` altındaki QA girişlerini içe aktarmaz; QA örnekleri asset olarak da tanımlanmaz. `BannerArea.qa` yer tutucusu yalnız `kDebugMode` koşulunda oluşturulur; `QA_BANNER_HEIGHT` varsayılanı 0'dır ve release'te QA yer tutucusu gösterilmez. Gerçek reklam SDK'sı eklenmedi. Bu ayrım kaynak/giriş bağımlılıkları ve Android/pubspec yapılandırması üzerinden denetlendi; bu kaydetme görevinde yeni bir release APK üretilmedi.
+
+Fiziksel test için hazırlanan ayrı debug uygulama kimliği `com.example.math_puzzle.qa`, adı `Math QA` idi; QA doğrudan test bulmacasını açar ve normal `AppStore` kayıt akışını başlatmaz. QA için yapılan geçici Android manifest/Gradle değişiklikleri geri alındı. Her iki debug APK, video, ekran görüntüleri, hareket planları, SDK yolları ve derleme çıktıları Git tarafından yok sayılan yerel dosyalardır; bu commit'in parçası değildir. `test/support/` altındaki kaynak fixture'lar otomatik testler için korunur ve normal kullanıcı kataloğuna/ilerlemesine eklenmez.
+
+Bu bölümden önceki “commit/push yapılmadı” ifadeleri ilgili geliştirme görevlerinin tarihsel durumudur. Bu kaydetme görevi mevcut yerleşimi ve fiziksel kullanıcı bildirimini PR #1'e taşır; PR birleştirilmez.

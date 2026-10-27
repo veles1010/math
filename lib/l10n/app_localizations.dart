@@ -499,6 +499,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Practice levels'**
   String get practiceLevels;
+
+  /// No description provided for @qaBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Banner area · QA'**
+  String get qaBanner;
 }
 
 class _AppLocalizationsDelegate

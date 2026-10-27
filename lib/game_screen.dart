@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'board.dart';
+import 'banner_area.dart';
 import 'game.dart';
 import 'store.dart';
 import 'l10n/app_localizations.dart';
@@ -23,6 +24,7 @@ class GameScreen extends StatefulWidget {
   final ValueChanged<bool>? onTutorialDone;
   final String? title, nextLabel;
   final VoidCallback? onReplay;
+  final double? qaBannerHeight;
   const GameScreen({
     super.key,
     required this.game,
@@ -35,6 +37,7 @@ class GameScreen extends StatefulWidget {
     this.title,
     this.nextLabel,
     this.onReplay,
+    this.qaBannerHeight,
   });
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -173,8 +176,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       },
       child: Scaffold(
         appBar: AppBar(
+          toolbarHeight: 48,
+          titleSpacing: 4,
+          titleTextStyle: Theme.of(context).textTheme.titleMedium,
           title: Text(
             tutorial ? l.howToPlay : widget.title ?? l.level(widget.number),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           actions: [
             if (tutorial)
@@ -221,6 +229,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             ],
           ],
         ),
+        bottomNavigationBar: tutorial
+            ? null
+            : BannerArea.qa(height: widget.qaBannerHeight),
         body: result
             ? ResultView(
                 game: game,
@@ -235,157 +246,176 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               )
             : SafeArea(
                 bottom: false,
-                child: Column(
-                  children: [
-                    if (tutorial)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                        child: Column(
+                child: LayoutBuilder(
+                  builder: (context, screen) => Column(
+                    children: [
+                      if (tutorial)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                          child: Column(
+                            children: [
+                              Text(
+                                l.tutorialStep(tutorialStep + 1),
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                tutorialStep == 0
+                                    ? l.tutorialTap
+                                    : l.tutorialDrag,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      Expanded(
+                        child: Stack(
                           children: [
-                            Text(
-                              l.tutorialStep(tutorialStep + 1),
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              tutorialStep == 0
-                                  ? l.tutorialTap
-                                  : l.tutorialDrag,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
+                            Positioned.fill(
+                              child: LayoutBuilder(
+                                builder: (context, area) {
+                                  final side = math
+                                      .min(
+                                        area.maxWidth - 8,
+                                        area.maxHeight - 4,
+                                      )
+                                      .clamp(1.0, 600.0);
+                                  Widget board(
+                                    double extent,
+                                    bool playable,
+                                  ) => PuzzleBoard(
+                                    cellExtent: extent,
+                                    fittingHeight: side,
+                                    game: game,
+                                    selected: selected,
+                                    large: settings.largeNumbers,
+                                    slash: settings.slash,
+                                    celebrating: celebrating,
+                                    interactive: !paused && playable,
+                                    allow: allowed,
+                                    onSelect: (id) => setState(
+                                      () =>
+                                          selected = selected == id ? null : id,
+                                    ),
+                                    onTransfer: (id, target) =>
+                                        transfer(id, target, fromDrag: true),
+                                    onDragging: (value) {
+                                      if (mounted) {
+                                        setState(() => dragging = value);
+                                      }
+                                    },
+                                  );
+                                  return Center(
+                                    child: SizedBox(
+                                      key: const ValueKey('board-square'),
+                                      width: side,
+                                      height: side,
+                                      child: ReadableBoard(
+                                        rows: game.puzzle.rows,
+                                        columns: game.puzzle.columns,
+                                        dragging: dragging,
+                                        builder: board,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
+                            if (paused)
+                              Positioned.fill(
+                                child: ColoredBox(
+                                  color: Theme.of(context)
+                                      .scaffoldBackgroundColor
+                                      .withValues(alpha: .96),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.pause_circle_outline,
+                                          size: 48,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          l.paused,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headlineSmall,
+                                        ),
+                                        const SizedBox(height: 20),
+                                        FilledButton.icon(
+                                          key: const ValueKey('resume'),
+                                          onPressed: () {
+                                            setState(() => paused = false);
+                                            _syncClock();
+                                          },
+                                          icon: const Icon(Icons.play_arrow),
+                                          label: Text(l.resume),
+                                        ),
+                                        TextButton(
+                                          onPressed: _home,
+                                          child: Text(l.home),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: LayoutBuilder(
-                              builder: (context, area) => SingleChildScrollView(
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight: tutorial ? 0 : area.maxHeight,
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: tutorial ? 12 : 8,
-                                    ),
-                                    child: PuzzleBoard(
-                                      fittingHeight: tutorial
-                                          ? null
-                                          : area.maxHeight - 16,
-                                      game: game,
-                                      selected: selected,
-                                      large: settings.largeNumbers,
-                                      slash: settings.slash,
-                                      celebrating: celebrating,
-                                      interactive: !paused,
-                                      allow: allowed,
-                                      onSelect: (id) => setState(
-                                        () => selected = selected == id
-                                            ? null
-                                            : id,
-                                      ),
-                                      onTransfer: (id, target) =>
-                                          transfer(id, target, fromDrag: true),
-                                      onDragging: (value) {
-                                        if (mounted) {
-                                          setState(() => dragging = value);
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
+                      if (!paused)
+                        AbsorbPointer(
+                          absorbing: result,
+                          child: PoolPanel(
+                            game: game,
+                            safeBottom: tutorial,
+                            maxInventoryHeight: math.max(
+                              60,
+                              screen.maxHeight * .5 - 60,
                             ),
-                          ),
-                          if (paused)
-                            Positioned.fill(
-                              child: ColoredBox(
-                                color: Theme.of(context).scaffoldBackgroundColor
-                                    .withValues(alpha: .96),
-                                child: Center(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.pause_circle_outline,
-                                        size: 48,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        l.paused,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .headlineSmall,
-                                      ),
-                                      const SizedBox(height: 20),
-                                      FilledButton.icon(
-                                        key: const ValueKey('resume'),
-                                        onPressed: () {
-                                          setState(() => paused = false);
-                                          _syncClock();
-                                        },
-                                        icon: const Icon(Icons.play_arrow),
-                                        label: Text(l.resume),
-                                      ),
-                                      TextButton(
-                                        onPressed: _home,
-                                        child: Text(l.home),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    if (!paused)
-                      AbsorbPointer(
-                        absorbing: result,
-                        child: PoolPanel(
-                          game: game,
-                          selected: selected,
-                          large: settings.largeNumbers,
-                          allow: allowed,
-                          onDragging: (value) {
-                            if (mounted) setState(() => dragging = value);
-                          },
-                          onTransfer: (tile, target) =>
-                              transfer(tile, target, fromDrag: dragging),
-                          onUndo: () {
-                            setState(() {
-                              game.undo();
-                              if (tutorial) {
-                                tutorialStep = game.value('b') == null ? 0 : 1;
+                            selected: selected,
+                            large: settings.largeNumbers,
+                            allow: allowed,
+                            onDragging: (value) {
+                              if (mounted) setState(() => dragging = value);
+                            },
+                            onTransfer: (tile, target) =>
+                                transfer(tile, target, fromDrag: dragging),
+                            onUndo: () {
+                              setState(() {
+                                game.undo();
+                                if (tutorial) {
+                                  tutorialStep = game.value('b') == null
+                                      ? 0
+                                      : 1;
+                                }
+                                selected = null;
+                                celebrating = {};
+                              });
+                              widget.onChanged();
+                            },
+                            onReturn: () {
+                              if (selected != null) {
+                                transfer(
+                                  game.placed[selected]!,
+                                  null,
+                                  fromDrag: false,
+                                );
                               }
-                              selected = null;
-                              celebrating = {};
-                            });
-                            widget.onChanged();
-                          },
-                          onReturn: () {
-                            if (selected != null) {
-                              transfer(
-                                game.placed[selected]!,
-                                null,
-                                fromDrag: false,
-                              );
-                            }
-                          },
-                          onSort: () {
-                            setState(game.sortPool);
-                            widget.onChanged();
-                          },
+                            },
+                            onSort: () {
+                              setState(game.sortPool);
+                              widget.onChanged();
+                            },
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
       ),
@@ -417,94 +447,110 @@ class ResultView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Stack(
-      children: [
-        Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 380),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.primary,
+    return LayoutBuilder(
+      builder: (context, area) {
+        // Actions remain reachable when a readable full-board preview needs scrolling.
+        final previewHeight = math.max(
+          100.0,
+          math.min(300.0, area.maxHeight - 210),
+        );
+        return Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          l.completed,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        Text(
+                          title ?? l.level(number),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          '${l.elapsedTime} · ${game.legacyTime && game.clock.elapsed == Duration.zero ? '—' : formatTime(game.clock.elapsed)}',
+                        ),
+                        if (game.legacyTime)
+                          Text(l.legacyTimeNotice, textAlign: TextAlign.center),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: SizedBox(
+                            key: const ValueKey('result-preview'),
+                            width: math.min(previewHeight, area.maxWidth - 24),
+                            height: math.min(previewHeight, area.maxWidth - 24),
+                            child: PuzzleBoard(
+                              game: game,
+                              interactive: false,
+                              fittingHeight: previewHeight,
+                              slash: settings.slash,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          title == null && number == puzzles.length
+                              ? l.allComplete
+                              : l.wellDone,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l.completed,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    title ?? l.level(number),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${l.elapsedTime} · ${game.legacyTime && game.clock.elapsed == Duration.zero ? '—' : formatTime(game.clock.elapsed)}',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  if (game.legacyTime)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        l.legacyTimeNotice,
-                        textAlign: TextAlign.center,
+                ),
+                Padding(
+                  key: const ValueKey('result-actions'),
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (onNext != null &&
+                          (title != null || number < puzzles.length))
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: onNext,
+                            icon: const Icon(Icons.arrow_forward_rounded),
+                            label: Text(nextLabel ?? l.nextLevel),
+                          ),
+                        ),
+                      Row(
+                        children: [
+                          if (onReplay != null)
+                            Expanded(
+                              child: TextButton.icon(
+                                onPressed: onReplay,
+                                icon: const Icon(Icons.replay_rounded),
+                                label: Text(l.replay),
+                              ),
+                            ),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: onHome,
+                              icon: const Icon(Icons.home_outlined),
+                              label: Text(l.home),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: SizedBox(
-                      key: const ValueKey('result-preview'),
-                      width: game.puzzle.columns > 5 ? 320 : 220,
-                      child: PuzzleBoard(
-                        game: game,
-                        interactive: false,
-                        fittingHeight: 240,
-                        slash: settings.slash,
-                      ),
-                    ),
+                    ],
                   ),
-                  Text(
-                    title == null && number == puzzles.length
-                        ? l.allComplete
-                        : l.wellDone,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  if (onNext != null &&
-                      (title != null || number < puzzles.length))
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: onNext,
-                        icon: const Icon(Icons.arrow_forward_rounded),
-                        label: Text(nextLabel ?? l.nextLevel),
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  if (onReplay != null)
-                    TextButton.icon(
-                      onPressed: onReplay,
-                      icon: const Icon(Icons.replay_rounded),
-                      label: Text(l.replay),
-                    ),
-                  OutlinedButton.icon(
-                    onPressed: onHome,
-                    icon: const Icon(Icons.home_outlined),
-                    label: Text(l.home),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ),
-        if (celebrate && !MediaQuery.disableAnimationsOf(context))
-          const Positioned.fill(child: IgnorePointer(child: ConfettiBurst())),
-      ],
+            if (celebrate && !MediaQuery.disableAnimationsOf(context))
+              const Positioned.fill(
+                child: IgnorePointer(child: ConfettiBurst()),
+              ),
+          ],
+        );
+      },
     );
   }
 }

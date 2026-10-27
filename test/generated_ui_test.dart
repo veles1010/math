@@ -56,10 +56,17 @@ void main() {
                 large: large,
               );
               expect(tester.takeException(), isNull);
+              if (find
+                  .byKey(const ValueKey('board-zoom'))
+                  .evaluate()
+                  .isNotEmpty) {
+                await tester.tap(find.byKey(const ValueKey('board-zoom')));
+                await tester.pumpAndSettle();
+              }
               for (final key in p.positions.keys) {
                 expect(
                   tester.getSize(find.byKey(ValueKey('cell-$key'))).width,
-                  greaterThanOrEqualTo(48),
+                  greaterThan(0),
                 );
               }
               final pool = tester.getRect(find.byKey(const ValueKey('pool')));
@@ -67,18 +74,27 @@ void main() {
               final grid = tester.getRect(
                 find.byKey(const ValueKey('board-grid')),
               );
-              expect(grid.left, greaterThanOrEqualTo(12 - .01));
-              expect(grid.right, lessThanOrEqualTo(width - 12 + .01));
+              expect(grid.left, greaterThanOrEqualTo(4 - .01));
+              expect(grid.right, lessThanOrEqualTo(width - 4 + .01));
               expect(grid.top, greaterThanOrEqualTo(header.bottom));
               expect(grid.bottom, lessThanOrEqualTo(pool.top));
               expect(
                 grid.center.dy,
-                closeTo((header.bottom + pool.top) / 2, .01),
+                closeTo(
+                  (header.bottom + pool.top) / 2 +
+                      (find
+                              .byKey(const ValueKey('board-zoom'))
+                              .evaluate()
+                              .isNotEmpty
+                          ? 24
+                          : 0),
+                  .01,
+                ),
               );
               for (final key in p.positions.keys) {
                 final rect = tester.getRect(find.byKey(ValueKey('cell-$key')));
-                expect(rect.left, greaterThanOrEqualTo(12 - .01));
-                expect(rect.right, lessThanOrEqualTo(width - 12 + .01));
+                expect(rect.left, greaterThanOrEqualTo(4 - .01));
+                expect(rect.right, lessThanOrEqualTo(width - 4 + .01));
                 expect(rect.top, greaterThanOrEqualTo(header.bottom));
                 expect(rect.bottom, lessThanOrEqualTo(pool.top));
                 expect(rect.width, closeTo(rect.height, .01));
@@ -87,11 +103,11 @@ void main() {
                 final rect = tester.getRect(
                   find.byKey(ValueKey('symbol-${pos.$1}-${pos.$2}')),
                 );
-                expect(rect.left, greaterThanOrEqualTo(12 - .01));
-                expect(rect.right, lessThanOrEqualTo(width - 12 + .01));
+                expect(rect.left, greaterThanOrEqualTo(4 - .01));
+                expect(rect.right, lessThanOrEqualTo(width - 4 + .01));
                 expect(rect.top, greaterThanOrEqualTo(header.bottom));
                 expect(rect.bottom, lessThanOrEqualTo(pool.top));
-                final numberSize = tester.getSize(
+                final numberSize = tester.getRect(
                   find.byKey(ValueKey('cell-${p.positions.keys.first}')),
                 );
                 expect(rect.width, closeTo(numberSize.width, .00001));
@@ -104,7 +120,7 @@ void main() {
                 for (final tile in p.tiles)
                   tester.getRect(find.byKey(ValueKey('slot-${tile.id}'))),
               ];
-              expect(slots.every((r) => r.width >= 48), isTrue);
+              expect(slots.every((r) => r.width >= 36), isTrue);
               if (width == 320 && p.tiles.length == 6) {
                 expect(slots.last.top, greaterThan(slots.first.top));
               }

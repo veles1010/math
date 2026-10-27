@@ -232,4 +232,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get practiceLevels => 'Alıştırma bölümleri';
+
+  @override
+  String get qaBanner => 'Banner alanı · QA';
 }

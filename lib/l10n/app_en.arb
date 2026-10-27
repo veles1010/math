@@ -118,5 +118,6 @@
       }
     }
   },
-  "practiceLevels": "Practice levels"
+  "practiceLevels": "Practice levels",
+  "qaBanner": "Banner area · QA"
 }

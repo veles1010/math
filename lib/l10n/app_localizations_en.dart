@@ -231,4 +231,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get practiceLevels => 'Practice levels';
+
+  @override
+  String get qaBanner => 'Banner area · QA';
 }

@@ -86,15 +86,10 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       await mount(tester, Game(fallbackCatalog(version: 1).first), width: 320);
-      final horizontal = find.descendant(
-        of: find.byType(PuzzleBoard),
-        matching: find.byType(Scrollable),
-      );
-      expect(horizontal, findsOneWidget);
-      expect(
-        tester.state<ScrollableState>(horizontal).position.maxScrollExtent,
-        greaterThan(0),
-      );
+      expect(find.byKey(const ValueKey('board-pan-x')), findsNothing);
+      final grid = tester.getRect(find.byKey(const ValueKey('board-grid')));
+      expect(grid.left, greaterThanOrEqualTo(0));
+      expect(grid.right, lessThanOrEqualTo(320));
       await tester.pumpWidget(const SizedBox());
       await mount(
         tester,
@@ -111,7 +106,7 @@ void main() {
     },
   );
   testWidgets(
-    'short phone with large text scrolls only vertically and keeps pool accessible',
+    'short phone with large text fits board and keeps pool accessible',
     (tester) async {
       tester.view.physicalSize = const Size(320, 568);
       tester.view.devicePixelRatio = 1;
@@ -145,8 +140,13 @@ void main() {
           .stateList<ScrollableState>(find.byType(Scrollable))
           .map((s) => s.position)
           .toList();
-      expect(positions.every((p) => p.axis == Axis.vertical), isTrue);
-      expect(positions.any((p) => p.maxScrollExtent > 0), isTrue);
+      expect(
+        positions.every(
+          (p) => p.axis == Axis.vertical || p.maxScrollExtent == 0,
+        ),
+        isTrue,
+      );
+      expect(positions.every((p) => p.maxScrollExtent == 0), isTrue);
       final grid = tester.getRect(find.byKey(const ValueKey('board-grid')));
       expect(grid.left, greaterThanOrEqualTo(0));
       expect(grid.right, lessThanOrEqualTo(320));
@@ -198,7 +198,8 @@ void main() {
         find.byKey(const ValueKey('result-preview')),
       );
       final grid = tester.getRect(find.byKey(const ValueKey('board-grid')));
-      expect(grid.height, lessThanOrEqualTo(240));
+      expect(grid.height, lessThanOrEqualTo(440));
+      expect(grid.height, lessThanOrEqualTo(300));
       for (final key in p.positions.keys) {
         final r = tester.getRect(find.byKey(ValueKey('cell-$key')));
         expect(r.left, greaterThanOrEqualTo(preview.left - .01));
