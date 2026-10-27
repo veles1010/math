@@ -106,11 +106,11 @@
   "generationFailed": "Yeni bulmaca hazırlanamadı. Mevcut oyunun korundu. Lütfen tekrar dene.",
   "easyPuzzle": "Kolay bulmaca",
   "generating": "Bulmaca hazırlanıyor…",
-  "replacePuzzleTitle": "Yeni kolay bulmaca başlatılsın mı?",
+  "replacePuzzleTitle": "Yeni bulmaca başlatılsın mı?",
   "easyCompletedCount": "Tamamlanan kolay bulmaca: {count}",
   "continueEasy": "Kolay bulmacaya devam et",
   "fallbackNotice": "Üretim tamamlanamadığı için doğrulanmış yedek bir bulmaca kullanıldı.",
-  "replacePuzzleBody": "Yarım kolay bulmacanın yerine yenisi gelecek. Üç sabit bölüm korunur.",
+  "replacePuzzleBody": "Yarım bulmacanız değiştirilecek. Üç alıştırma bölümü korunur.",
   "@easyCompletedCount": {
     "placeholders": {
       "count": {
@@ -119,5 +119,18 @@
     }
   },
   "practiceLevels": "Alıştırma bölümleri",
-  "qaBanner": "Banner alanı · QA"
+  "qaBanner": "Banner alanı · QA",
+  "easyDifficulty": "Kolay",
+  "mediumDifficulty": "Orta",
+  "mediumPuzzle": "Orta bulmaca",
+  "newMediumPuzzle": "Yeni bulmaca — Orta",
+  "replayMedium": "Bu orta bulmacayı tekrar oyna",
+  "mediumCompletedCount": "Tamamlanan orta bulmaca: {count}",
+  "@mediumCompletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

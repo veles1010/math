@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'game.dart';
 import 'generated_puzzle.dart';
 import 'easy_generator.dart';
+import 'medium_generator.dart';
 
 class AppSettings {
   ThemeMode theme = ThemeMode.system;
@@ -37,6 +38,9 @@ class AppStore extends ChangeNotifier {
   final settings = AppSettings();
   Game? generatedGame;
   final Set<String> generatedCompletedIds = {};
+  final Set<String> mediumCompletedIds = {};
+  String? mediumLastFamily;
+  int get mediumCompletedCount => mediumCompletedIds.length;
   final List<String> recentGenerated = [];
   final Map<String, int> familyCounts = {};
   String? lastFamily;
@@ -71,9 +75,29 @@ class AppStore extends ChangeNotifier {
     return seed;
   }
 
+  int reserveMediumSeed() {
+    final choices = MediumGenerator.families
+        .where((f) => f != mediumLastFamily)
+        .toList();
+    choices.sort((a, b) {
+      final score = (familyCounts[a] ?? 0).compareTo(familyCounts[b] ?? 0);
+      return score == 0
+          ? MediumGenerator.families
+                .indexOf(a)
+                .compareTo(MediumGenerator.families.indexOf(b))
+          : score;
+    });
+    final seed =
+        seedCounter * 4 + MediumGenerator.families.indexOf(choices.first);
+    seedCounter = (seedCounter + 1) % 500000000;
+    return seed;
+  }
+
   void _countGenerated() {
     if (generatedGame?.completedOnce == true) {
-      generatedCompletedIds.add(generatedGame!.puzzle.id);
+      final p = generatedGame!.puzzle as GeneratedPuzzle;
+      (p.difficulty == 'medium' ? mediumCompletedIds : generatedCompletedIds)
+          .add(p.id);
     }
   }
 
@@ -83,7 +107,11 @@ class AppStore extends ChangeNotifier {
   }) {
     _countGenerated();
     generatedGame = Game(puzzle)..beginSession();
-    lastFamily = puzzle.family;
+    if (puzzle.difficulty == 'medium') {
+      mediumLastFamily = puzzle.family;
+    } else {
+      lastFamily = puzzle.family;
+    }
     familyCounts.update(puzzle.family, (n) => n + 1, ifAbsent: () => 1);
     recentGenerated.add(puzzle.fingerprint);
     if (recentGenerated.length > 20) recentGenerated.removeAt(0);
@@ -93,6 +121,9 @@ class AppStore extends ChangeNotifier {
 
   Map<String, dynamic> _easyData() => {
     'definition': (generatedGame?.puzzle as GeneratedPuzzle?)?.toDefinition(),
+    'difficulty': (generatedGame?.puzzle as GeneratedPuzzle?)?.difficulty,
+    'mediumCompletedIds': mediumCompletedIds.toList(),
+    'mediumLastFamily': mediumLastFamily,
     'session': generatedGame?.toJson(),
     'completedIds': generatedCompletedIds.toList(),
     'recent': recentGenerated,
@@ -149,6 +180,10 @@ class AppStore extends ChangeNotifier {
             final puzzle = GeneratedPuzzle.fromDefinition(
               (data['definition'] as Map).cast<String, dynamic>(),
             );
+            if (data['difficulty'] != null &&
+                data['difficulty'] != puzzle.difficulty) {
+              throw const FormatException('difficulty mismatch');
+            }
             loaded = Game(puzzle);
             if (!loaded.restore(
               (data['session'] as Map).cast<String, dynamic>(),
@@ -168,6 +203,10 @@ class AppStore extends ChangeNotifier {
           }
           generatedGame = loaded;
           generatedCompletedIds.addAll(ids);
+          mediumCompletedIds.addAll(
+            (data['mediumCompletedIds'] as List? ?? []).cast<String>(),
+          );
+          mediumLastFamily = data['mediumLastFamily'] as String?;
           recentGenerated.addAll(recent);
           familyCounts.addAll(counts);
           seedCounter = counter;

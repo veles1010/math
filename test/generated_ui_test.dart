@@ -150,7 +150,7 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
       await pressNew(tester);
-      expect(find.text('Start a new easy puzzle?'), findsOneWidget);
+      expect(find.text('Start a new puzzle?'), findsOneWidget);
       await tester.tap(find.text('Keep current puzzle'));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.byKey(const ValueKey('primary-play')));

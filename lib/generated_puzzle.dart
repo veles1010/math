@@ -6,6 +6,7 @@ import 'game.dart';
 class GeneratedPuzzle extends Puzzle {
   final int seed, generatorVersion;
   final String family;
+  final String difficulty;
   final Map<String, (int, int)> cells;
   final Map<String, int> solution;
   final Set<String> clues;
@@ -16,6 +17,7 @@ class GeneratedPuzzle extends Puzzle {
     required this.seed,
     required this.generatorVersion,
     required this.family,
+    this.difficulty = 'easy',
     required Map<String, (int, int)> cells,
     required Map<String, int> solution,
     required Set<String> clues,
@@ -58,6 +60,7 @@ class GeneratedPuzzle extends Puzzle {
 
   Map<String, dynamic> toDefinition() => {
     'id': id,
+    if (difficulty != 'easy') 'difficulty': difficulty,
     'seed': seed,
     'generatorVersion': generatorVersion,
     'family': family,
@@ -78,13 +81,19 @@ class GeneratedPuzzle extends Puzzle {
     ],
   };
   factory GeneratedPuzzle.fromDefinition(Map<String, dynamic> data) {
+    final difficulty = data['difficulty'] as String? ?? 'easy';
+    if (!['easy', 'medium'].contains(difficulty)) {
+      throw const FormatException('difficulty');
+    }
+    final medium = difficulty == 'medium';
     final rawCells = (data['cells'] as Map).cast<String, dynamic>();
     final rawLines = data['equations'] as List;
-    if (rawCells.length > 30 || rawLines.length > 6) {
+    if (rawCells.length > 30 || rawLines.length > (medium ? 8 : 6)) {
       throw const FormatException('definition bounds');
     }
     final result = GeneratedPuzzle(
       id: data['id'] as String,
+      difficulty: difficulty,
       seed: data['seed'] as int,
       generatorVersion: data['generatorVersion'] as int,
       family: data['family'] as String,
@@ -109,17 +118,18 @@ class GeneratedPuzzle extends Puzzle {
           ],
       ],
     );
-    if (result.lines.length < 4 ||
-        result.tiles.length < 5 ||
-        result.tiles.length > 8 ||
+    if (result.lines.length < (medium ? 6 : 4) ||
+        result.tiles.length < (medium ? 8 : 5) ||
+        result.tiles.length > (medium ? 12 : 8) ||
         !validGeometry(result) ||
+        (medium && (result.rows > 11 || result.columns > 11)) ||
         result.solution.keys
             .toSet()
             .difference(result.cells.keys.toSet())
             .isNotEmpty ||
         result.solution.length != result.cells.length ||
         result.clues.any((k) => !result.cells.containsKey(k)) ||
-        result.solution.values.any((v) => v < 1 || v > 30) ||
+        result.solution.values.any((v) => v < 1 || v > (medium ? 60 : 30)) ||
         result.lines.any((e) => e.check((k) => result.solution[k]) != true)) {
       throw const FormatException('invalid definition');
     }
@@ -159,7 +169,13 @@ bool validGeometry(GeneratedPuzzle puzzle) {
       }
     }
   }
-  if (occupied.keys.any((p) => p.$1 < 0 || p.$2 < 0 || p.$1 > 12 || p.$2 > 8)) {
+  if (occupied.keys.any(
+    (p) =>
+        p.$1 < 0 ||
+        p.$2 < 0 ||
+        p.$1 > 12 ||
+        p.$2 > (puzzle.difficulty == 'medium' ? 10 : 8),
+  )) {
     return false;
   }
   for (final p in occupied.keys) {

@@ -106,11 +106,11 @@
   "generationFailed": "A new puzzle could not be created. Your current game is safe. Please try again.",
   "easyPuzzle": "Easy puzzle",
   "generating": "Creating puzzle…",
-  "replacePuzzleTitle": "Start a new easy puzzle?",
+  "replacePuzzleTitle": "Start a new puzzle?",
   "easyCompletedCount": "Easy puzzles completed: {count}",
   "continueEasy": "Continue easy puzzle",
   "fallbackNotice": "A verified reserve puzzle was used because generation did not finish.",
-  "replacePuzzleBody": "Your unfinished easy puzzle will be replaced. The three fixed levels are kept.",
+  "replacePuzzleBody": "Your unfinished puzzle will be replaced. The three practice levels are kept.",
   "@easyCompletedCount": {
     "placeholders": {
       "count": {
@@ -119,5 +119,18 @@
     }
   },
   "practiceLevels": "Practice levels",
-  "qaBanner": "Banner area · QA"
+  "qaBanner": "Banner area · QA",
+  "easyDifficulty": "Easy",
+  "mediumDifficulty": "Medium",
+  "mediumPuzzle": "Medium puzzle",
+  "newMediumPuzzle": "New puzzle — Medium",
+  "replayMedium": "Play this medium puzzle again",
+  "mediumCompletedCount": "Medium puzzles completed: {count}",
+  "@mediumCompletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

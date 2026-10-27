@@ -8,6 +8,8 @@ import 'theme.dart';
 import 'l10n/app_localizations.dart';
 import 'easy_generator.dart';
 import 'easy_fallback.dart';
+import 'medium_generator.dart';
+import 'medium_fallback.dart';
 import 'generated_puzzle.dart';
 export 'game_screen.dart' show GameScreen;
 
@@ -17,8 +19,8 @@ void main() {
 }
 
 class MathPuzzleApp extends StatefulWidget {
-  final Future<Map<String, dynamic>> Function(int)? generate;
-  const MathPuzzleApp({super.key, this.generate});
+  final Future<Map<String, dynamic>> Function(int)? generate, generateMedium;
+  const MathPuzzleApp({super.key, this.generate, this.generateMedium});
   @override
   State<MathPuzzleApp> createState() => _MathPuzzleAppState();
 }
@@ -28,6 +30,7 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
   bool tutorialOffered = false;
   final levelsKey = GlobalKey();
   bool generating = false;
+  String selectedDifficulty = 'easy';
   Future<void> openEasy(
     BuildContext context, {
     bool replace = false,
@@ -49,12 +52,20 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
             key: ValueKey(game.puzzle.id),
             game: game,
             number: 0,
-            title: l.easyPuzzle,
-            nextLabel: l.newEasyPuzzle,
+            title: (game.puzzle as GeneratedPuzzle).difficulty == 'medium'
+                ? l.mediumPuzzle
+                : l.easyPuzzle,
+            nextLabel: (game.puzzle as GeneratedPuzzle).difficulty == 'medium'
+                ? l.newMediumPuzzle
+                : l.newEasyPuzzle,
             settings: store.settings,
             onChanged: store.save,
             onSettings: () => settings(routeContext),
-            onNext: () => createEasy(routeContext, replace: true),
+            onNext: () => createEasy(
+              routeContext,
+              replace: true,
+              difficulty: (game.puzzle as GeneratedPuzzle).difficulty,
+            ),
             onReplay: () => openEasy(routeContext, replace: true, replay: true),
           );
         },
@@ -67,7 +78,13 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
     }
   }
 
-  Future<void> createEasy(BuildContext context, {bool replace = false}) async {
+  Future<void> createEasy(
+    BuildContext context, {
+    bool replace = false,
+    String? difficulty,
+  }) async {
+    final chosen = difficulty ?? selectedDifficulty,
+        medium = (difficulty ?? selectedDifficulty) == 'medium';
     if (generating) return;
     final l = AppLocalizations.of(context)!;
     if (store.generatedGame?.canContinue == true) {
@@ -93,30 +110,44 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
     setState(() => generating = true);
     GeneratedPuzzle? puzzle;
     var fallback = false;
-    var family = EasyGenerator.families.first;
+    var family = medium
+        ? MediumGenerator.families.first
+        : EasyGenerator.families.first;
     try {
       for (var retry = 0; retry < 3 && puzzle == null; retry++) {
-        final seed = store.reserveEasySeed();
-        family = EasyGenerator.families[seed % 4];
+        final seed = medium
+            ? store.reserveMediumSeed()
+            : store.reserveEasySeed();
+        family = (medium
+            ? MediumGenerator.families
+            : EasyGenerator.families)[seed % 4];
         final result =
-            await (widget.generate?.call(seed) ??
-                    compute(generateEasyMessage, seed))
+            await (medium
+                    ? (widget.generateMedium?.call(seed) ??
+                          compute(generateMediumMessage, seed))
+                    : (widget.generate?.call(seed) ??
+                          compute(generateEasyMessage, seed)))
                 .timeout(const Duration(seconds: 3));
-        debugPrint('easy-generator seed=$seed ${result['report']}');
+        debugPrint('$chosen-generator seed=$seed ${result['report']}');
         if (result['definition'] != null) {
           final candidate = GeneratedPuzzle.fromDefinition(
             (result['definition'] as Map).cast<String, dynamic>(),
           );
+          if (candidate.difficulty != chosen) {
+            throw StateError('wrong generator difficulty');
+          }
           if (!store.recentGenerated.contains(candidate.fingerprint)) {
             puzzle = candidate;
           }
         }
       }
     } catch (error) {
-      debugPrint('easy-generator failed: $error');
+      debugPrint('$chosen-generator failed: $error');
     }
     if (puzzle == null) {
-      puzzle = pickFallback(family, store.recentGenerated.toSet());
+      puzzle = medium
+          ? pickMediumFallback(family, store.recentGenerated.toSet())
+          : pickFallback(family, store.recentGenerated.toSet());
       fallback = puzzle != null;
     }
     if (!mounted) return;
@@ -316,6 +347,26 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
                               style: Theme.of(context).textTheme.headlineMedium,
                             ),
                             const SizedBox(height: 24),
+                            SegmentedButton<String>(
+                              key: const ValueKey('difficulty-selector'),
+                              segments: [
+                                ButtonSegment(
+                                  value: 'easy',
+                                  label: Text(l.easyDifficulty),
+                                ),
+                                ButtonSegment(
+                                  value: 'medium',
+                                  label: Text(l.mediumDifficulty),
+                                ),
+                              ],
+                              selected: {selectedDifficulty},
+                              onSelectionChanged: generating
+                                  ? null
+                                  : (values) => setState(
+                                      () => selectedDifficulty = values.single,
+                                    ),
+                            ),
+                            const SizedBox(height: 12),
                             KeyedSubtree(
                               key: store.generatedGame?.canContinue == true
                                   ? null
@@ -350,6 +401,8 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
                                       ? l.generating
                                       : store.generatedGame?.canContinue == true
                                       ? l.resume
+                                      : selectedDifficulty == 'medium'
+                                      ? l.newMediumPuzzle
                                       : l.newEasyPuzzle,
                                 ),
                               ),
@@ -362,13 +415,23 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
                                     ? null
                                     : () => createEasy(context),
                                 icon: const Icon(Icons.add_rounded),
-                                label: Text(l.newEasyPuzzle),
+                                label: Text(
+                                  selectedDifficulty == 'medium'
+                                      ? l.newMediumPuzzle
+                                      : l.newEasyPuzzle,
+                                ),
                               ),
                             ],
                             const SizedBox(height: 8),
                             Text(
                               l.easyCompletedCount(
                                 store.generatedCompletedCount,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            Text(
+                              l.mediumCompletedCount(
+                                store.mediumCompletedCount,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -380,7 +443,12 @@ class _MathPuzzleAppState extends State<MathPuzzleApp> {
                                 ),
                                 child: Text(
                                   store.generatedGame!.complete
-                                      ? l.replayEasy
+                                      ? ((store.generatedGame!.puzzle
+                                                        as GeneratedPuzzle)
+                                                    .difficulty ==
+                                                'medium'
+                                            ? l.replayMedium
+                                            : l.replayEasy)
                                       : l.continueEasy,
                                 ),
                               ),

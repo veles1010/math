@@ -1,7 +1,11 @@
 import 'game.dart';
 
 /// The only inference allowed by the easy grader: two values determine a third.
-int? inferMissing(Equation equation, Map<String, int> values) {
+int? inferMissing(
+  Equation equation,
+  Map<String, int> values, {
+  int maxValue = 30,
+}) {
   final a = values[equation.cells[0]],
       b = values[equation.cells[1]],
       c = values[equation.cells[2]];
@@ -34,7 +38,7 @@ int? inferMissing(Equation equation, Map<String, int> values) {
           : divide(a, b),
     null => null,
   };
-  return result != null && result >= 1 && result <= 30 ? result : null;
+  return result != null && result >= 1 && result <= maxValue ? result : null;
 }
 
 class SolveResult {
@@ -52,7 +56,7 @@ class DeductionResult {
   const DeductionResult(this.values, this.steps, this.solved);
 }
 
-DeductionResult deduce(Puzzle puzzle) {
+DeductionResult deduce(Puzzle puzzle, {int maxValue = 30}) {
   final values = Map<String, int>.of(puzzle.fixed), steps = <String>[];
   final counts = <int, int>{};
   for (final tile in puzzle.tiles) {
@@ -67,7 +71,7 @@ DeductionResult deduce(Puzzle puzzle) {
         return DeductionResult(values, steps, false);
       }
       if (missing.length != 1) continue;
-      final v = inferMissing(e, values);
+      final v = inferMissing(e, values, maxValue: maxValue);
       if (v == null || (counts[v] ?? 0) == 0) {
         return DeductionResult(values, steps, false);
       }
@@ -88,8 +92,8 @@ DeductionResult deduce(Puzzle puzzle) {
 
 /// Searches numerical assignments with a value multiset, never tile permutations.
 class PuzzleSolver {
-  final int maxNodes;
-  const PuzzleSolver({this.maxNodes = 10000});
+  final int maxNodes, maxValue;
+  const PuzzleSolver({this.maxNodes = 10000, this.maxValue = 30});
   SolveResult solve(Puzzle puzzle) {
     var nodes = 0, exceeded = false;
     final answers = <Map<String, int>>[];
@@ -117,7 +121,7 @@ class PuzzleSolver {
           if (missing.isEmpty) {
             if (e.check((k) => values[k]) != true) return;
           } else if (missing.length == 1) {
-            final v = inferMissing(e, values);
+            final v = inferMissing(e, values, maxValue: maxValue);
             if (v == null || (left[v] ?? 0) == 0) return;
             values[missing.single] = v;
             left[v] = left[v]! - 1;
