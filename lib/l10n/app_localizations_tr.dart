@@ -212,7 +212,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get generating => 'Bulmaca hazırlanıyor…';
 
   @override
-  String get replacePuzzleTitle => 'Yeni kolay bulmaca başlatılsın mı?';
+  String get replacePuzzleTitle => 'Yeni bulmaca başlatılsın mı?';
 
   @override
   String easyCompletedCount(int count) {
@@ -228,11 +228,31 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get replacePuzzleBody =>
-      'Yarım kolay bulmacanın yerine yenisi gelecek. Üç sabit bölüm korunur.';
+      'Yarım bulmacanız değiştirilecek. Üç alıştırma bölümü korunur.';
 
   @override
   String get practiceLevels => 'Alıştırma bölümleri';
 
   @override
   String get qaBanner => 'Banner alanı · QA';
+
+  @override
+  String get easyDifficulty => 'Kolay';
+
+  @override
+  String get mediumDifficulty => 'Orta';
+
+  @override
+  String get mediumPuzzle => 'Orta bulmaca';
+
+  @override
+  String get newMediumPuzzle => 'Yeni bulmaca — Orta';
+
+  @override
+  String get replayMedium => 'Bu orta bulmacayı tekrar oyna';
+
+  @override
+  String mediumCompletedCount(int count) {
+    return 'Tamamlanan orta bulmaca: $count';
+  }
 }

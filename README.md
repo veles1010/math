@@ -1,8 +1,8 @@
 # Math Puzzle
 
-Android/iOS için çevrimdışı, üç sabit bölümden oluşan Flutter matematik bulmacası. **Math Puzzle** geçici görünen addır. `com.example.math_puzzle` geliştirme kimliğidir; mağazaya çıkmadan önce paket/bundle kimliği, imzalama, simgeler ve nihai ad belirlenmelidir.
+Android/iOS için çevrimdışı, üç sabit alıştırma bölümü ile Kolay/Orta bulmaca üretimi sunan Flutter matematik bulmacası. **Math Puzzle** geçici görünen addır. `com.example.math_puzzle` geliştirme kimliğidir; mağazaya çıkmadan önce paket/bundle kimliği, imzalama, simgeler ve nihai ad belirlenmelidir.
 
-Güncel kolay üretici **v2** telefon yerleşimlerini kullanır: en fazla beş sütun, beş boş hücre ve 5–6 denklem. Güncel ölçümler ve telefon kontrolleri belgenin sonundadır. V1 bölümü önceki çalışmanın tarihsel kaydıdır; mevcut kod yeni bulmacalarda v2 üretir.
+Güncel profiller **Kolay v2** ve **Orta v1**. Kolay beş sütuna kadar 5 boş hücre/5–6 denklem kullanır. Orta, yalnız kolay çıkarımla çözülemeyen; havuz adayları, kesişim ve adet kurallarıyla tahminsiz çözülen 8–10 boş hücreli dört aile üretir. Ana ekrandan Kolay/Orta seçilir; Devam et kayıtlı oturumun zorluğunu korur. Güncel ölçümler, kayıt uyumluluğu ve sınırlar belgenin sonundaki Orta v1 bölümündedir. Önceki geliştirme raporları tarihsel kayıttır.
 
 ## Çalıştırma
 
@@ -18,7 +18,7 @@ flutter run -d <device-id>
 Android SDK ve gerektiğinde `flutter doctor --android-licenses` gerekir. iOS derlemesi macOS/Xcode ve uygun signing yapılandırması gerektirir.
 
 ```sh
-dart format --output=none --set-exit-if-changed lib test
+dart format --output=none --set-exit-if-changed lib test tool
 flutter analyze
 flutter test
 flutter build apk --debug
@@ -28,12 +28,12 @@ APK: `build/app/outputs/flutter-apk/app-debug.apk`.
 
 ## Oynanış ve tasarım
 
-- Krem/mercan/turkuaz açık ve lacivert/mor/mint koyu palet; merkezi `ThemePalette`. Hafif kabartmalı taşlar, telefon genişliğine göre yaklaşık 56–64 piksel kare hücreler ve 4 piksel tutarlı boşluklar. Sayı/işlem/eşittir aynı ızgarayı kullanır. Denklem dışındaki koordinatlar boştur. Küçük tahta geniş ekranda büyütülmez; uygun alanda ortalanır.
-- Sabit taşlarda kilit ve farklı dolgu, oyuncu taşlarında küçük nokta, boş taşlarda üç nokta, seçimde kalın çerçeve ve alt çizgi bulunur. Seçim için doğruluk onayı simgesi kullanılmaz.
+- Krem/mercan/turkuaz açık ve lacivert/mor/mint koyu palet; merkezi `ThemePalette`. Havuzda hafif kabartmalı taşlar; tahtada ince düz kenarlıklı eşit kare hücreler ve 1 piksel aralık. Bütün tahta mevcut kare alana sığar, 32 piksel alt sınırı dayatılmaz. Sayı/işlem/eşittir aynı ızgarayı kullanır. Denklem dışındaki koordinatlar boştur. Küçük tahta geniş ekranda büyütülmez; uygun alanda ortalanır.
+- Sabit sayılarda farklı dolgu ve küçük alt çizgi, oyuncu taşlarında küçük nokta, boş hücrelerde boş dolgu, seçimde kalın çerçeve bulunur. Seçim için doğruluk onayı simgesi kullanılmaz.
 - Hücreyi seçip havuzdaki taşa dokunma veya taşı sürükleyerek yerleştirme. Oyuncu taşını başka düzenlenebilir hücreye veya havuza sürükleme. Sabit sayılar taşınamaz ve üzerlerine bırakılamaz.
 - Tek `Game.transfer` işlemi dokunma, sürükleme, değiştirme ve geri koyma için kullanılır. Dolu hedefteki eski taş kendi havuz yuvasına döner. Her başarılı işlem tek hamlede geri alınır. Geçersiz/iptal edilmiş sürükleme yerleşimi veya geçmişi değiştirmez. Sürükleme görüntüsü parmağın üzerinde kalır. Hedef işaretlemesi ve bırakma kabulü, pointer yerine görünen taşın merkeziyle yapılır; aynı feedbackCenterOffset iki işlemde de kullanılır. Kare hedef alanları genişletilip komşu hücrelerin üzerine bindirilmez.
-- Sabit alt panel: tüm taşların kalıcı yuvaları, boş kullanılan yuvalar, gerektiğinde birden çok satır, Geri al, Geri koy ve Sırala. Alt kontroller en az 52 piksel yüksekliktedir; ana düğmeler 64 piksel ve kalın 20 piksel metin kullanır. Havuz taşları dar telefonlarda yaklaşık 54, alan elverdiğinde 60 pikseldir. Büyük sayı seçimi 30 yerine 40 piksel metin kullanır. Kalan taşlar yalnız kullanıcı istediğinde küçükten büyüğe sıralanır; eşit değerlerde mevcut sıra korunur. Kullanılan yuvalar ve hamle geçmişi sıralamadan etkilenmez.
-- Teknik denklem listesi kaldırıldı. Eksik denklem hata sayılmaz. Yeni tamamlanan doğru denklem kısa bir ölçek/vurgu animasyonu alır; yanlış denklem çerçeve ve ünlemle belirtilir. Ortak hücre hem doğru hem yanlış denkleme aitse yanlışlık işareti korunur. Taşlar otomatik silinmez; can/ceza yoktur.
+- Sabit alt panel: tüm taşların kalıcı yuvaları, boş kullanılan yuvalar, gerektiğinde birden çok satır, Geri al, Geri koy ve Sırala. Alt kontroller en az 48 piksel dokunma yüksekliğindedir; ana düğmeler 64 piksel ve kalın 20 piksel metin kullanır. Havuz taşları genişliğe göre yaklaşık 40–52 piksel genişlik ve en fazla 48 piksel yükseklik kullanır. Büyük sayı ayarı havuz yazısını 26 yerine 32 piksele, tahta yazısını hücreye göre daha büyük orana ayarlar; taşma durumunda metin sığdırılır. Kalan taşlar yalnız kullanıcı istediğinde küçükten büyüğe sıralanır; eşit değerlerde mevcut sıra korunur. Kullanılan yuvalar ve hamle geçmişi sıralamadan etkilenmez.
+- Teknik denklem listesi kaldırıldı. Eksik denklem hata sayılmaz. Yeni tamamlanan doğru denklem kısa bir vurgu geçişi alır; yanlış denklem çerçeve ve ünlemle belirtilir. Ortak hücre hem doğru hem yanlış denkleme aitse yanlışlık işareti korunur. Taşlar otomatik silinmez; can/ceza yoktur.
 - Tamamlanma, bütün gerekli sayıların dolu ve bütün denklemlerin aritmetik olarak doğru olmasına bağlıdır; saklı sayı veya taş sırası ile eşitlik aranmaz. Bölme sıfıra bölmeyi ve tam sayı olmayan sonucu reddeder. Bölme işareti tercihi yalnız görünümü etkiler.
 
 ## Ekranlar ve tercihler
@@ -51,7 +51,7 @@ APK: `build/app/outputs/flutter-apk/app-debug.apk`.
 2. `9 − 3 = 6`, `6 × 2 = 12`, `12 + 5 = 17`
 3. `6 × 3 = 18`, `18 − 9 = 9`, `9 ÷ 3 = 3`
 
-Üst satır `c = a işlem b`, sol sütun `c işlem d = e`, alt satır `e işlem f = g` biçiminde okunur. İki kesişim aynı sayı hücresini kullanır. Bu üç bölüm sabit kalır; kolay üretici ayrı bir oyun akışıdır.
+Üst satır `c = a işlem b`, sol sütun `c işlem d = e`, alt satır `e işlem f = g` biçiminde okunur. İki kesişim aynı sayı hücresini kullanır. Bu üç bölüm sabit kalır; Kolay/Orta üretimi ayrı bir oyun akışıdır.
 
 ## Kod ve kayıt uyumluluğu
 
@@ -351,3 +351,186 @@ Normal giriş `lib/main.dart`; Android kimliği `com.example.math_puzzle`, gör�
 Fiziksel test için hazırlanan ayrı debug uygulama kimliği `com.example.math_puzzle.qa`, adı `Math QA` idi; QA doğrudan test bulmacasını açar ve normal `AppStore` kayıt akışını başlatmaz. QA için yapılan geçici Android manifest/Gradle değişiklikleri geri alındı. Her iki debug APK, video, ekran görüntüleri, hareket planları, SDK yolları ve derleme çıktıları Git tarafından yok sayılan yerel dosyalardır; bu commit'in parçası değildir. `test/support/` altındaki kaynak fixture'lar otomatik testler için korunur ve normal kullanıcı kataloğuna/ilerlemesine eklenmez.
 
 Bu bölümden önceki “commit/push yapılmadı” ifadeleri ilgili geliştirme görevlerinin tarihsel durumudur. Bu kaydetme görevi mevcut yerleşimi ve fiziksel kullanıcı bildirimini PR #1'e taşır; PR birleştirilmez.
+
+## Orta üretici v1 — feature/medium-generator
+
+Bu çalışma `feature/easy-generator` dalının `c0783b0` ucundan oluşturulan **feature/medium-generator** dalındadır. Kolay üretici kaynakları, v1/v2 dondurulmuş kolay tanımları, üç alıştırma ve kare tahta/havuz/banner tasarımı değiştirilmedi. Bu görevde commit/push veya PR #1 birleştirmesi yapılmadı.
+
+### Profil ve kabul koşulları
+
+`lib/medium_generator.dart` Flutter'dan bağımsızdır; mevcut `SeedRandom`, tam tanım modeli, geometri doğrulayıcı ve bağımsız `PuzzleSolver` kullanılır. Orta sürümü **1**, kolay sürümü **2** olarak ayrıdır. Aynı seed + aynı profil sürümü aynı tanımı verir. Dört orta aile, mevcut geçerli bağlantılı geometri şablonlarını ayrı orta profilinde kullanır; yalnız kolay bölümün sayılarını büyütüp zorluk etiketini değiştirmez.
+
+| Orta ailesi | Satır × sütun | Denklem |
+|---|---:|---:|
+| medium-doubleFork | 7 × 9 | 6 |
+| medium-loopBranch | 7 × 7 | 6 |
+| medium-longFork | 11 × 9 | 6 |
+| medium-mesh | 5 × 7 | 6 |
+
+Kabul sınırları 6–8 denklem, 8–12 boş hücre, en fazla 11×11 ve pozitif **1–60** tam sayılardır. İlk sürümde bu aralığın **6 denklem ve 8–10 boş hücre** kısmı üretilir; 7–8 denklem veya 11–12 boş hücre üretildiği iddia edilmez. Toplama/çıkarma ağırlığı ikişer, çarpma/tam bölme ağırlığı üçer seçenek olarak kullanılır; kabul edilen tahtada en az iki çarpma/bölme denklemi gerekir. Çarpan/bölen/bölüm seçenekleri en fazla 12, tüm hücreler en fazla 60'tır. Negatif/sıfır sonuç, sıfıra bölme veya kesir üretilmez.
+
+Önce geçerli tam tahta kurulur, sonra sayı hücreleri gizlenir. Aynı koordinat aynı değişken kimliğidir. Geometri denetimi bağlantıyı, çakışmaları ve tanımlanmayan işlem gibi görünen bitişiklikleri reddeder. Havuz gizlenen sayıların tekrar adetlerini tam karşılar. Kabul için **kolay iki-bilinen kuralı tek başına yetmemeli**, ek mantık çözümü tamamlamalı ve bağımsız sayısal çözücü tam olarak bir çözüm bulmalıdır. Arama/düşünme bütçesi aşılırsa aday kabul edilmez; kolay bulmacaya sessiz dönüş yoktur.
+
+### Mantık kuralları ve aramadan ayrımı
+
+`lib/logical_solver.dart` değer atayarak tahmin veya backtracking yapmaz. Sonlu aday kümelerini yalnız daraltır:
+
+1. Önce kolaydaki iki bilinen sayıdan üçüncüyü bulma kuralını mümkün olduğu kadar uygular.
+2. Her denklem için, kalan havuz değerlerinden aritmetik olarak geçerli yerel üçlüleri çıkarır. Aynı değerden iki tane gerekiyorsa havuzda iki kopya olmalıdır; sabit/önceden yerleştirilen sayılar havuzdan ikinci kez tüketilmez.
+3. Ortak hücrelerin yatay/dikey aday kümelerini kesiştirir; sonraki turlarda bu daralmayı diğer denklemlere yayar. Tek adaya kalan hücreler yerleştirilir.
+4. Bir değerin kalan kopya sayısı, o değeri alabilen hücre sayısına eşitse o hücreleri zorunlu kılar. Adet yetersizliği veya boş aday kümesi tutarsızlıktır.
+
+`singles`, `poolPlacements`, `intersectionPlacements`, `inventoryPlacements`, toplam aday elemeleri ve kesişimin en güçlü tek denkleme ek olarak elediği aday sayısı raporlanır. Yerleştirme sayacı son zorunlu kılan kuralı sınıflandırır; insanın öznel zorluk algısının ölçümü değildir. Her kabul edilen orta aday en az bir ek yerleştirme gerektirir. `PuzzleSolver` ise ayrı bir sınıfta **sayısal atamaları** arar ve ikinci farklı çözümde durur; eşit değerli taşların kimlik permütasyonlarını saymaz. Ortak aritmetik çıkarımı yeni `maxValue` parametresi alır; varsayılan 30 kaldığı için kolay davranışı korunur, orta 60 kullanır. Oynanış hâlâ bütün aritmetik olarak geçerli tamamlamaları kabul eder; saklı çözüm eşitliği eklenmedi.
+
+Bütçeler: en fazla **160 tam tahta adayı**, her adayda **8 gizleme maskesi**, tek çözüm aramasında **30.000 düğüm**; mantıksal değerlendiricide **100.000 yerel aday çifti / 128 tur**. UI üretimi `compute` isolate'ında yapar, her denemede 3 saniye yanıt sınırı ve en fazla üç farklı seed vardır; hata/zaman aşımı doğrulanmış orta yedeğine veya mevcut oturumu koruyan hata mesajına gider. Süre aşımı tek çözüm sayılmaz.
+
+`medium_fallback_data.dart`, seed 0–7'den dondurulmuş **sekiz orta tanımı** içerir (aile başına iki). Her biri yeniden test edilen tek çözüm, kolay-kuralıyla çözülememe ve ek kurallarla tahminsiz çözülme koşullarını taşır. Yalnız aynı zorluk ve seçilen aileden, yakın geçmişte olmayan yedek seçilir. Yedek de tükenirse yükleme sonlanır; yarım oyun korunur. Son 20 tanımın birebir tekrarı engellenir; orta aile geçmişi kolay aile geçmişinden ayrı tutulup dengelenir.
+
+### Akış ve kayıt uyumluluğu
+
+Ana ekranda **Kolay / Orta** seçimi, seçime göre yeni bulmaca eylemi ve ayrı kolay/orta tamamlanma sayaçları bulunur. Devam et, seçicide o an ne seçili olduğundan bağımsız olarak kayıtlı oturumu gerçek zorluğuyla açar. Yarım oturum varken yeni oyun açık onay ister; üretim başarısız olursa onay verilmiş olsa bile mevcut yarım oyun kaybolmaz. Başlık/sonuç gerçek zorluğu gösterir; sonuçtaki yeni bulmaca eylemi aynı zorluktan devam eder. Zorluk değiştirmek ana ekrandaki seçimden yapılır. Tekrar oyna aynı tanımı korur; tahta, süre, geçmiş ve sonuç durumu sıfırlanır, bitirme aynı zorluğun sayacını ikinci kez artırmaz. Yeni metinler TR/EN ARB'dedir.
+
+Mevcut `easy-session-v1` anahtarı taşıma biçimidir; silinmez/yeniden adlandırılmaz. Oturum tam tanımı, zorluğu, seed'i, profil sürümünü, yerleşim/taş kimliklerini, süreyi ve geçmişi saklar. Orta tanımında `difficulty: medium` açıktır. Eski kolay tanımlarında zorluk alanı eksikse **easy** kabul edilir; kolay tanımının eski JSON biçimi/golden referansları değişmez. Yeni oturum zorluğu dış oturum alanında da açıkça saklanır. `mediumCompletedIds` ve orta aile geçmişi ek alanlardır; eski kayıtta yoklarsa boş başlar. Önceki kolay tamamlanma kimlikleri, üç alıştırma kayıtları ve tam tanımdan yükleme korunur. Kaydedilmiş bulmaca yalnız seed'den tekrar üretilmez.
+
+### 200-seed ölçümü ve kolay regresyonu
+
+Komutlar:
+
+```sh
+dart run tool/measure_medium.dart 200
+dart run tool/measure_generator.dart 200
+```
+
+Seed 0–199, Windows/Dart JIT; süreler çekirdek üretim süresidir, isolate başlatma, telefon performansı veya depolama dahil değildir. JSON raporları `build/medium-work/measurement.json` ve `build/generator-work/measurement.json` altında, Git dışında tutulur. Ölçüm komutu dondurulmuş kaynak yedeklerini otomatik değiştirmez.
+
+| Ölçüm | Orta v1 | Kolay v2 regresyon |
+|---|---:|---:|
+| Kabul / başarısız / yedek | 200 / 0 / 0 | 200 / 0 / 0 |
+| Tam tahta denemesi | 316 | 213 |
+| Gizleme maskesi denemesi | 439 | kolayın mevcut gizleme akışı |
+| Aile dağılımı | her aile 50 | her aile 50 |
+| Boş hücre dağılımı | 8: 71, 9: 71, 10: 58 | 5: 200 |
+| Medyan / p95 / maks. | 1,429 / 5,764 / 72,000 ms | 0,803 / 2,613 / 32,146 ms |
+| Toplama / çıkarma / çarpma / bölme | 226 / 329 / 291 / 354 | 515 / 380 / 75 / 80 |
+| Çarpma + bölme oranı | %53,75 | yaklaşık %14,76 |
+
+Orta retleri: 41 tam tahta kurulamaması, 60 işlem karışımı yetersizliği ve **239 maskede** mantıksal ilerlemenin durması. Maske retleri tam tahta denemelerinden ayrı birimdir; ret toplamı 316 ile karşılaştırılmaz. Bu örneklemde kolay-kuralıyla tamamen çözülme, geometri, tek çözüm veya bütçe retleri 0, yedek oranı **%0** oldu. Kolay 13 tam tahta reddiyle önceki deterministik örneklemle aynı sayı/işlem/aile sonuçlarını verdi.
+
+Kabul edilen 200 orta tahtanın toplam mantık ölçümleri: **482** iki-bilinen yerleştirme, **745** havuz/denklem adayı yerleştirmesi, **198** kesişim yerleştirmesi, **362** havuz adedi zorunluluğu yerleştirmesi; toplam **1.305 ek kural yerleştirmesi** (bulmaca başına ortalama 6,525). Toplam 9.823 aday elendi; kesişim tek bir denklemin sağlayabileceğine ek **359** aday eledi. Yerel aday çifti denetimi toplam 36.999. Bu, bütün kabul edilen bulmacalarda kolay kuralının ötesinde mantık gerektiğini gösterir; tahmin veya tam arama adımı zorluk puanına karıştırılmaz.
+
+### Kontroller ve emülatör
+
+- Format **36 Dart dosyasında temiz**, analiz **sorun yok**, tüm **270 test geçti**. Önceki testler korunur; yalnız yeni iki-zorluk onay penceresinin genel metin beklentisi güncellendi. Ek testler tekrar adetleri, bağımsız aday eleme/kesişim örnekleri, 60 sınırı, mantık/arama bütçesi, 200 orta seed, dondurulmuş yedekler, eski kolay varsayımı, kayıt/tekrar oynama/sayaçlar, üretim/yedek tükenmesinde yarım oyunu koruma ve seçim akışını kapsar.
+- Dört gerçek orta aile × 320×568/390×844 × açık/koyu görünüm, büyük sayılar açık ve 90 banner ile **16 widget kontrolü**: her hücrenin kare tahta sınırları içinde kaldığı ve etkileşimli olduğu denetlenir. Önceki kapsamlı dil/büyük sayı/banner matrisleri ve gerçek pointer regresyonları da geçer. Tahta, havuz, banner ve sürükleme kaynakları bu görevde değiştirilmedi.
+- Android debug APK başarıyla derlendi; normal `com.example.math_puzzle` kimliği `aapt` ile doğrulandı. Teslim APK'sı `build/app/outputs/flutter-apk/app-debug.apk`, debug 50 piksel QA banner ile. Gerçek reklam SDK'sı eklenmedi.
+- Android emülatöründe gerçek uygulamanın Kolay/Orta seçimi kullanılarak **medium-doubleFork seed 0** ve **medium-loopBranch seed 5** dokunma/sürüklemeyle tamamlandı. Başlık ve sonuçta Orta yazdı; yedek kullanılmadı. Orta sayacı 2, kolay sayacı 0 olarak kayıttan ve ana ekrandan doğrulandı. Sonuçtaki yeni orta eylemi ikinci aileyi başlattı. Tekrar oyna aynı seed 5 tanımını koruyup boş tahta/geçmiş ve sıfırlanmış sonuç durumuyla açtı; orta sayacı 2 kaldı.
+- İlk ailede bir taş yerleştirildikten sonra süreç `force-stop` ile durdurulup açıldı. Devam et aynı kimliği, **tam tanımı**, `n0_2` yerleşimini, bir hamlelik geri alma geçmişini ve yaklaşık 145 saniyelik kayıtlı süreyi yükledi; seed'den yeni bulmaca üretilmedi. Önce/sonra JSON tanımları eşit karşılaştırıldı.
+- Emülatör deneyi `com.example.math_puzzle.mediumqa20261027` adlı ayrı pakette yapıldı. Bu emülatörde asıl `com.example.math_puzzle` paketi kurulu değildi; dolayısıyla bu görev için asıl kayıt dosyası SHA karşılaştırması yapılamadı. Yalnız ayrı QA paketine başlangıç verisi yazıldı; kullanıcı telefonundaki veriye erişilmedi. Geçici Android paket/ad değişiklikleri geri alındı ve QA paketi test sonunda kaldırıldı. Yerel kanıtlar/görseller `build/medium-work/` altında Git dışındadır.
+
+**Sınırlar / yapılmayanlar:** Orta v1 sınırsız yerleşim veya zorluk üreticisi değildir; dört sabit bağlantılı geometri ailesinin sayısal varyantlarını üretir. Şimdilik altı denklem ve 8–10 boş hücre kullanır. Mantık sınıflandırması belirli kuralların gerekliliğini ölçer, bütün insanların aynı zorluğu algılayacağını garanti etmez. Emülatörde dört ailenin yalnız ikisi baştan sona oynandı; en uzun aileyi de içeren dört aile matrisi widget testidir. Fiziksel Android telefonunda yeni orta profil denenmedi; önceki fiziksel kolay/11×11 QA kullanıcı bildirimi orta için geçerli sayılmaz. iOS derlemesi/cihazı, fiziksel ekran okuyucu ve gerçek parmakla küçük hedef okunaklılığı kontrol edilmedi. En küçük ekranlarda bütün tahtayı gösterme kararı nedeniyle hücreler küçük olabilir; önceki 320×568 + 90 banner sınırı geçerlidir. Zor/uzman, ipucu ekonomisi, mağaza, satın alma veya günlük görev eklenmedi.
+
+## Bildirilen orta oturumun çözülebilirlik incelemesi — 2026-10-27
+
+`feature/medium-generator` üzerinde mevcut değişiklikler korundu. Yeni oyun başlatılmadı, kullanıcı oturumu sıfırlanmadı/onarılmadı, uygulama kurulmadı veya kaldırılmadı; commit/push yapılmadı. Bu inceleme tasarımı, üretici profilini veya zorluk kurallarını değiştirmez. Çalışma zamanı kaynaklarına düzeltme eklenmedi: bildirilen havuzla eşleşen gerçek oturum çözülebiliyor; üretim hatası bu oturumda yeniden üretilemedi.
+
+### Gerçek kayıt ve yedek
+
+Bağlı `emulator-5554` cihazındaki `com.example.math_puzzle` paketinin `shared_prefs/FlutterSharedPreferences.xml` kaydı, herhangi bir oyun eyleminden önce `build/solvability-investigation/original-preferences.xml` dosyasına salt okunur olarak alındı. Bu yedek dosyanın SHA-256 değeri `8B6C0D3F5F9FDC43EF241954933E21E751E634D8460EC8DADF0F036EEEAC0BF9`. Ham `flutter.easy-session-v1` JSON metni `original-session.json` olarak ayrıca ayrıldı. Bu yerel XML/JSON/görseller/APK Git dışında tutulur; regresyonda yalnız matematiksel tam tanım `test/fixtures/reported_medium_definition.json` içindedir; yerleşim test kodunda sentetik hamlelerle yeniden kurulur, kullanıcı zamanı/geçmişi/sayaçları dahil edilmez. Özgün cihaz kaydına yazılmadı; uygulama açıkken kendi süresini kaydetmeye devam edebilir.
+
+Kimlik **medium-v1-59101bcd-9dce7643**, seed **1494227917**, üretici sürümü **1**, aile **medium-loopBranch**, zorluk **medium**. İpuçları `n2_6 = 54`, `n4_0 = 11`. Başlangıç havuzu, kayıtlı tam tanımdan türetilen gerçek taş kimlikleriyle **1, 1, 2, 2, 4, 10, 11, 42, 44, 52**: kullanıcı listesi birebir doğrulandı. Yedekte süre 1.000.178 ms, 14 geri alma görüntüsü ve on yerleşim var; sonuç sunulmamış ve oyun tamamlanmamış.
+
+| Boş hücre | (satır, sütun), sıfır tabanlı | Tek çözüm | Kullanılabilecek gerçek taş kimliği son eki |
+|---|---|---:|---|
+| n0_0 | (0, 0) | 1 | -t0 |
+| n2_0 | (2, 0) | 11 | -t1 |
+| n2_2 | (2, 2) | 4 | -t2 |
+| n2_4 | (2, 4) | 44 | -t3 |
+| n4_2 | (4, 2) | 1 | -t4 |
+| n4_4 | (4, 4) | 2 | -t5 |
+| n4_6 | (4, 6) | 2 | -t6 |
+| n6_2 | (6, 2) | 10 | -t7 |
+| n6_4 | (6, 4) | 42 | -t8 |
+| n6_6 | (6, 6) | 52 | -t9 |
+
+Bütün taş kimliklerinin öneki `medium-v1-59101bcd-9dce7643`. Eşit değerli taşlar ayrı kimliklidir; iki 1 veya iki 2'nin kimlik değişimi yeni sayısal çözüm sayılmaz. Kullanım adetleri **1×2, 2×2, 4×1, 10×1, 11×1, 42×1, 44×1, 52×1**; ipuçlarındaki 11 ve 54 havuzdan tüketilmez. Ortak hücreler yalnız bir kez taş tüketir.
+
+| Denklem hücre kimlikleri | Tamamlanan denklem |
+|---|---|
+| n2_0, n2_2, n2_4 | 11 × 4 = 44 |
+| n2_4, n4_4, n6_4 | 44 − 2 = 42 |
+| n4_2, n4_4, n4_6 | 1 × 2 = 2 |
+| n0_0, n2_0, n4_0 | 1 × 11 = 11 |
+| n2_6, n4_6, n6_6 | 54 − 2 = 52 |
+| n6_2, n6_4, n6_6 | 10 + 42 = 52 |
+
+### Bağımsız sonuç ve görünen sorun
+
+Üretim çözücüsünü/çıkarım yardımcısını veya saklı çözüm eşitliğini kullanmayan bağımsız tam arama yalnız başlangıç ipuçları, denklemler ve havuz tekrar adetlerini kullanır. Python çapraz kontrolü tüm aramayı **441 düğümde**, bütçe kesilmesi olmadan bitirdi: **bir sayısal çözüm**. Ayrı Dart test oracle'ı ve üretimin `PuzzleSolver(maxValue: 60)` sonucu da aynı tek atamayı verdi. Burada bütçe aşımı çözümsüzlük/tek çözüm diye yorumlanmadı; sıfır bütçe testi ayrıca belirsiz sonucu doğrular.
+
+Özgün yerleşimde `n4_4=42`, `n6_4=2`, `n4_6=52`, `n6_6=2` bulunuyor. Böylece **44 − 42 = 2** ve **54 − 52 = 2** tek başına doğru; fakat ortak hücrelerde **1 × 42 = 52** ve **10 + 2 = 2** yanlış kalıyor. Bu, bütün denklemler için birlikte geçerli bir yerleşim değil. Dört hücrenin yukarıdaki çözüm tablosuna göre değiştirilmesi yeterli; kullanıcı kaydında bu değişiklik yapılmadı. Kopya oyun modelinde mevcut gerçek taşlarla değiştirme uygulanınca başarı doğrulandı. Taşlar eksik veya çoğalmış değil.
+
+Aynı seed'in güncel üretimi, kayıtlı **tam tanımla birebir eşit** bulundu. Koordinatlar tekil, ortak hücre tek kimlik; geometri, sabitler, denklem kimlikleri/işlemleri ve taş kimlik/değer çiftleri üretim → Game → AppStore kaydı → yükleme boyunca aynı kaldı. UI widget'ındaki tüm sayı ve işlem etiketleri kayıtla karşılaştırıldı. Özgün emülatör ekranı da dokunmadan alındı ve aynı mevcut yerleşimi gösterdi. Değiştirme, havuza döndürme, sıralama ve geri alma testleri bu oturumda çoklu kümeyi korudu. Üretim doğrulamasının sabit olmayan saklı değerleri ipucu olarak okuduğuna veya havuz dışı değer kullandığına ilişkin bu oturumda bulgu yok.
+
+Bu mesajda yeni orta video/görsel dosya yolu gelmedi. Yerelde bulunan önceki `Android Emulator ... 2026-10-27 00-40-46.mp4` ve `WhatsApp Video 2026-10-27 at 19.14.32.mp4` kayıtlarından kareler incelendi; bunlar kolay/alıştırma ekranları gösteriyor, bu orta oturumun başlangıç videosu oldukları doğrulanamadı. Dolayısıyla video başlangıcını doğruladığımız iddia edilmez; bildirilen havuz eşleşmesi doğrudan gerçek oturumdan sağlandı. Başka oturum/seed doğrulaması bu bildirimin yerine sunulmadı.
+
+### Regresyon ve kontroller
+
+`test/reported_session_test.dart` gerçek oturumu dört testle kapsar: bağımsız tek çözüm ve gerçek taşlarla tamamlanma; 52 yerine 51 konmuş hatalı havuzun bağımsız/üretim çözücülerince reddi; aynı seed/tam tanım, kayıt/yükleme, değiştirme/geri alma ve sayaç; bütün UI sayı/işlem etiketlerinin kayıtla eşleşmesi. Çözüm on gerçek taşla temiz Game kopyasına uygulanır, hiçbir taş artmaz ve bütün denklemler doğru tamamlanır. Özgün yerleşim de yalnız test kopyasında düzeltilip tamamlanır.
+
+Son salt okunur karşılaştırmada cihazdaki tam tanım, mevcut yerleşim ve 14 hamlelik geçmiş yedekle aynı kaldı. Açık uygulamanın doğal zamanlayıcısı 1.000.178 ms'den 1.320.174 ms'ye ilerledi; inceleme tarafından süre/oturum sıfırlanmadı. Bu nedenle tüm tercih XML'inin son hash'inin aynı olması beklenmez.
+
+Son kontroller: **37 Dart dosyası formatlandı**, `flutter analyze` **sorun yok**, bütün **274 test geçti** (önceki 270 + bu oturumun 4 regresyonu). `flutter build apk --debug --dart-define=QA_BANNER_HEIGHT=50` başarılı; çıktı `build/app/outputs/flutter-apk/app-debug.apk`. Derlenen APK kullanıcı uygulamasına kurulmadı. Bu görevde emülatörde kullanıcı oturumuna hamle yapılmadı; tamamlanma yalnız kopya Game/Store/widget testlerinde doğrulandı. Fiziksel cihaz veya iOS testi yapılmadı.
+
+## Orta tahta / 50 QA banner incelemesi — 2026-10-27
+
+Mevcut `feature/medium-generator` çalışması korunur; üretim matematiği, zorluk, saklı tanımlar ve kayıtlar değiştirilmez. Normal giriş `lib/main.dart` → `MathPuzzleApp`; dört orta aile de kolay ile aynı `GameScreen → ReadableBoard → PuzzleBoard` bileşenlerinden geçer. Zorluğa göre ayrı bir tahta çizimi veya farklı hücre boyut yolu yoktur.
+
+### Kurulu APK ile kaynak ayrımı
+
+İnceleme öncesinde emülatörün normal `com.example.math_puzzle` APK'sı ve tercih XML'i `build/medium-layout/installed-before.apk` / `preferences-before.xml` olarak salt okunur yedeklendi. Kurulu uygulama debug, sürüm adı 1.0.0 / kodu 1; son paket güncelleme zamanı 2026-10-27 18:22:42. Bu numaralar bütün yerel debug derlemelerinde aynı olduğundan tek başına sürüm kanıtı değildir.
+
+Kurulu APK'nın SHA-256 değeri `205D8BA787AA1640E4B27E6C376914CA79AA3B2E61E96F0C64E88B58DFCC8E95`, önceki görevdeki yerel normal 50-banner APK'nın değeri `5B124E3A1E3E11C648EA573AE6107BBADD28E62E3203152D81A87D302A301162`; aynı dosya değiller. Dart kernel SHA'ları da `7e4fbbf6…` / `c4bbb832…` olarak farklı. Ancak debug kernel'in gömülü kaynaklarında **main.dart, board.dart, game_screen.dart, banner_area.dart ve medium_generator.dart**, CR/LF satır sonları normalize edilince mevcut kaynaklarla **tam eşleşiyor**. Bu nedenle “kurulu APK eski tahta kodu kullanıyor” sonucu çıkarılamaz; kod eşleşmesi ile derleme/artifact eşitliği birbirinden ayrıldı.
+
+Kurulu çalışma ekranında banner yok. `GameScreen` normal girişte yükseklik override'ı almıyor; `BannerArea.qa` yalnız debug modunda `QA_BANNER_HEIGHT > 0` ise yer tutucu oluşturuyor, varsayılan **0**. Bayraksız `flutter run/build` QA banner göstermez. Kurulu paketin özgün derleme komutu elimizde olmadığından bayrağın hiç verilmediği mi yoksa 0 verildiği mi iddia edilmez. Paket hash farkı tek başına hangi bayrakla derlendiğini de kanıtlamaz. Yeni teslim APK'sı aşağıdaki **açık komutla** derlenir:
+
+```sh
+flutter build apk --debug --target lib/main.dart --dart-define=QA_BANNER_HEIGHT=50
+```
+
+Gerçek reklam/ağ isteği eklenmez; release varsayılanı ve debug-only koruması değişmez. Yeni uzun orta kayıt bu mesajda erişilebilir bir dosya yolu/ek olarak gelmedi; yerelde bulunan önceki kolay/alıştırma videolarının bu orta kaydı olduğu varsayılmadı. Kurulu paket hakkındaki kanıt, videonun tam olarak hangi paket veya hot-reload oturumundan alındığının kanıtı değildir.
+
+### Sığdırma ve gerçek sınırlar
+
+Ekran önce AppBar, SafeArea, ayrı banner ve sabit havuz/kontrollere alan ayırır. Kalan alanda kare kenarı `min(alan genişliği − 8, alan yüksekliği − 4, 600)`; hücre boyutu `min(64, (kare genişliği − (sütun−1))/sütun, (kare yüksekliği − (satır−1))/satır)` olur. Aralık 1 mantıksal piksel; kare tahta taşlarının çerçevesi hücrenin **içinde** çizilir ve dış genişlik eklemez. Kullanılmayan koordinatlar boş kalır; tüm gerçek sayı/işlem/eşittir sınırları test edilir. Boyut hesabı gerçek `rows/columns` değerlerini kullanır; 11×11'e zorla yaymaz. Varsayılan görünüm etkileşimlidir.
+
+`test/medium_layout_test.dart`: dört aile × üç ekran × iki tema × TR/EN = **48** büyük-sayı-açık/50-banner widget senaryosu. Yalnız overflow değil; her hücre ve sembolün gerçek Rect'i, karelik, satır/sütun konumu ve 1 piksel aralık; kare/havuz/kontrol/banner ayrımı ölçülür. Bütün düzenlenebilir hücreler tek tek dokunularak seçilir. Ek dört pointer testi, her ailede iki uç düzenlenebilir hücreye 24 ara hareketle sürükler; feedback merkezinin hedef merkezine gelmesini, hover/accept eşleşmesini ve sürükleme sonrası havuz/kontrol/banner Rect'lerinin sabitliğini doğrular.
+
+| Ekran | doubleFork 7×9 | loopBranch 7×7 | longFork 11×9 | mesh 5×7 |
+|---|---:|---:|---:|---:|
+| 320×568 | 27,05 | 35,06 | 21,95 | 35,06 |
+| 360×640 | 33,78 | 43,71 | 27,45 | 43,71 |
+| 390×844 | 41,56 | 53,71 | 33,82 | 53,71 |
+
+Tablodaki değerler hücre kenarıdır (mantıksal piksel), 24 üst/alt güvenli alan ve 50 banner ile ölçülmüştür. Tüm tahta görünür olsa da özellikle 320×568/11 satırdaki yaklaşık **22 piksel** hedefler fiziksel erişilebilirlik garantisi değildir. Önceki 320×568 + 90 banner sınırı da korunur. Mevcut sığdırmada kesilme testlerde yeniden üretilemedi; kanıt olmadan tahta ölçeği/tasarımı değiştirilmedi. Bu görevin kalıcı ekleri regresyonlar, ölçüm raporu ve açıkça yapılandırılmış APK teslimidir.
+
+### Sonuç, emülatör kanıtı ve sınırlar
+
+- Format **38 Dart dosyasında temiz**, `flutter analyze` **sorun yok**; ilgili `medium_layout_test`, `readable_board_test`, `drag_replay_test`, `banner_layout_test` paketlerinde **158 test geçti**. Bu görevde tüm test paketi yeniden koşturulmadı; önceki görevdeki 274 test sonucu tarihsel olarak geçerlidir. Yeni 52 düzen/pointer testi bu görevde eklendi.
+- Normal teslim APK'sı `build/medium-layout/Math-Puzzle-Debug-Banner50.apk`, kimlik `com.example.math_puzzle`, ad `Math Puzzle`; `aapt` ile doğrulandı. SHA-256: `FE7F3D42AA1F3E8F01FA8ACB4403086A6F89F18F8CCCACB1A7E7D7C44353E640`. Standart `build/app/outputs/flutter-apk/app-debug.apk` ve Gradle debug çıktısı da normal APK olarak geri bırakıldı. Normal uygulamaya yükleme yapılmadı.
+- Emülatör QA'sı aynı `lib/main.dart` girişinden, yalnız geçici Android kimlik/ad değişikliğiyle `com.example.math_puzzle.layoutqa20261027` / `Math Layout QA` paketinde yapıldı. Android kaynakları byte yedeklerinden finally ile geri alındı; diff yok. Bu paket normal kayıt dizinine erişmez; QA tanımları yalnız kendi özel XML'ine yazıldı. QA paketi test sonunda kaldırıldı. Release'e yeni QA girişi/asset/SDK eklenmedi.
+- Emülatör 1080×2400, 420 dpi (yaklaşık 411×914 mantıksal piksel), çözünürlük değiştirilmedi. Gerçek **medium-longFork seed 2, 11×9** ve **medium-doubleFork seed 0, 7×9** aileleri açık tema/TR/büyük sayılar/50-banner ile görüntülendi. Geniş ailenin en soldaki sayı hücresi fiziksel x=11–126, en sağdaki x=954–1070; 1080 genişlik içinde tam görünür. Uzun ailenin sayı hücreleri x=107–973 içinde. İki ailede havuz, kontroller ve banner ayrıdır.
+- Uzun ailede on taşın tamamı gerçek ADB pointer swipe hareketleriyle yerleştirildi; feedback'in hedef merkezi için 48 mantıksal piksel ofseti kullanıldı. Oyun **00:50** gerçek süreyle sonuç ekranına geçti; `resultPresented=true`, orta tamamlanma kimliği sayısı 1. Tam tahta önizlemesi, düğmeler ve 50-banner sonuçta da görünür kaldı.
+- Görseller: `build/medium-layout/long-family-before.png`, `wide-family-before.png`, `long-family-result.png`. Gerçek UI sınırları `long-ui.xml` / `wide-ui.xml`; otomatik 48 senaryonun sayısal Rect raporu `widget-bounds.json`. Bunlar yerel/Git dışı kanıtlardır; APK, video, XML yedekleri veya ölçüm çıktıları commit'e alınmaz.
+- Normal oturumun inceleme öncesi/sonrası **tam tanımı, yerleşimleri, hamle geçmişi, havuz sırası, tamamlanma kimlikleri, yakın geçmiş, aile sayaçları ve seed sayacı** eşit karşılaştırıldı. Yeniden üretme/sıfırlama yapılmadı; commit/push yok.
+
+**Neden/düzeltme sınırı:** Banner'ın görünmediği çalışmada QA slot'u etkin değildi; varsayılan 0 olan derleme ayarı yerine teslimde açık `QA_BANNER_HEIGHT=50` kullanıldı ve emülatörde görünürlüğü kanıtlandı. Mevcut kaynakta sol/sağ kesilmesi dört aile testinde veya iki emülatör örneğinde yeniden üretilemedi; görsel koduna kanıtsız bir değişiklik yapılmadı. İlgili uzun orta videonun dosyası/paket kimliği bu görevde doğrulanamadığından videodaki kesilmenin kesin kök nedeni bulunduğu iddia edilmez. Aynı sürüm numarasının aynı APK anlamına gelmediği hash/gömülü kaynak karşılaştırmasıyla belgelendi.
+
+Fiziksel telefon, iOS, bütün dört ailenin emülatörde tamamlanması veya yeni uzun videonun birebir yeniden oynatımı yapılmadı. 320/360/390 boyutları otomatik widget sınır/etkileşim testidir; emülatör yalnız yukarıdaki gerçek çözünürlükte kullanıldı. Küçük hücrelerin gerçek parmakla okunaklılığı bu testlerle garanti edilmez.
+
+## Orta çalışmasını GitHub'a kaydetme — 2026-10-27
+
+Bu kaydetme görevi orta üretici, zorluk/kayıt entegrasyonu ve regresyonları `feature/medium-generator` dalında tek kapsam olarak `feature/easy-generator` hedefli ayrı PR'a taşır. Yukarıdaki “commit/push yapılmadı” ifadeleri önceki geliştirme görevlerinin tarihsel durumudur; PR #1 ve yeni orta PR birleştirilmez. Bu görevde ürün özelliği veya tasarım değişikliği yapılmadı.
+
+Commit öncesi son doğrulama: **38 Dart dosyasında format temiz**, `flutter analyze` **sorun yok**, `flutter test` **326/326 test başarılı, 0 başarısız** (200 orta ve 200 kolay seed denetimleri dahil). Önceki 245/270/274/158 test raporları kendi görevlerinin geçmiş sonuçlarıdır. Bu kaydetme görevinde yeniden APK/emülatör/iOS testi yapılmadı; önceki derleme ve manuel kontroller yukarıda ayrı belirtilmiştir.
+
+Ham kullanıcı XML/JSON yedekleri, özgün oyun süresi/geçmişi/sayaçları, APK'lar, videolar ve build çıktıları commit dışında kalır. Regresyona yalnız bildirilen bulmacanın matematiksel tam tanımı alınır; aynı sorunlu yerleşim test kodunda sentetik hamlelerle, 73 saniyelik yapay süre ve yapay önceki tamamlanma kimliğiyle kurulur. Böylece bağımsız çoklu-küme çözümü ve üretim → oyun → kayıt/yükleme testleri korunurken gerçek kullanıcı kaydı yayımlanmaz. Kaynakta kullanılan sekiz orta yedek tanımı ürün verisidir; kullanıcı kaydı değildir. `pubspec.lock` takip edilmeye devam eder.

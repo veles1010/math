@@ -211,7 +211,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get generating => 'Creating puzzle…';
 
   @override
-  String get replacePuzzleTitle => 'Start a new easy puzzle?';
+  String get replacePuzzleTitle => 'Start a new puzzle?';
 
   @override
   String easyCompletedCount(int count) {
@@ -227,11 +227,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get replacePuzzleBody =>
-      'Your unfinished easy puzzle will be replaced. The three fixed levels are kept.';
+      'Your unfinished puzzle will be replaced. The three practice levels are kept.';
 
   @override
   String get practiceLevels => 'Practice levels';
 
   @override
   String get qaBanner => 'Banner area · QA';
+
+  @override
+  String get easyDifficulty => 'Easy';
+
+  @override
+  String get mediumDifficulty => 'Medium';
+
+  @override
+  String get mediumPuzzle => 'Medium puzzle';
+
+  @override
+  String get newMediumPuzzle => 'New puzzle — Medium';
+
+  @override
+  String get replayMedium => 'Play this medium puzzle again';
+
+  @override
+  String mediumCompletedCount(int count) {
+    return 'Medium puzzles completed: $count';
+  }
 }

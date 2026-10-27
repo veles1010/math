@@ -467,7 +467,7 @@ abstract class AppLocalizations {
   /// No description provided for @replacePuzzleTitle.
   ///
   /// In en, this message translates to:
-  /// **'Start a new easy puzzle?'**
+  /// **'Start a new puzzle?'**
   String get replacePuzzleTitle;
 
   /// No description provided for @easyCompletedCount.
@@ -491,7 +491,7 @@ abstract class AppLocalizations {
   /// No description provided for @replacePuzzleBody.
   ///
   /// In en, this message translates to:
-  /// **'Your unfinished easy puzzle will be replaced. The three fixed levels are kept.'**
+  /// **'Your unfinished puzzle will be replaced. The three practice levels are kept.'**
   String get replacePuzzleBody;
 
   /// No description provided for @practiceLevels.
@@ -505,6 +505,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Banner area · QA'**
   String get qaBanner;
+
+  /// No description provided for @easyDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get easyDifficulty;
+
+  /// No description provided for @mediumDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get mediumDifficulty;
+
+  /// No description provided for @mediumPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium puzzle'**
+  String get mediumPuzzle;
+
+  /// No description provided for @newMediumPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'New puzzle — Medium'**
+  String get newMediumPuzzle;
+
+  /// No description provided for @replayMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Play this medium puzzle again'**
+  String get replayMedium;
+
+  /// No description provided for @mediumCompletedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium puzzles completed: {count}'**
+  String mediumCompletedCount(int count);
 }
 
 class _AppLocalizationsDelegate
